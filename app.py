@@ -31,7 +31,8 @@ def normalize_name(name):
     name = re.sub(r'\s+', ' ', name).strip()
     return name
 
-@app.get("/", response_class=HTMLResponse)
+
+@app.get("/")
 async def read_item(request: Request):
     return templates.TemplateResponse(
         "index.html",
