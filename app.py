@@ -9,6 +9,7 @@ import io
 import re
 import base64
 import os
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
@@ -17,6 +18,7 @@ os.makedirs("templates", exist_ok=True)
 os.makedirs("static", exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+#templates = Jinja2Templates(directory="templates")
 templates = Jinja2Templates(directory="templates")
 
 def normalize_name(name):
