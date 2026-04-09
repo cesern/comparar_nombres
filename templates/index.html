@@ -61,34 +61,52 @@
             -webkit-backdrop-filter: blur(6px);
             animation: fadeInOverlay 0.2s ease;
         }
+
         #infoModal.open {
             display: flex;
         }
+
         @keyframes fadeInOverlay {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
+
         #infoModalBox {
             background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
             border-radius: 1.5rem;
-            box-shadow: 0 25px 60px -10px rgba(99,102,241,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);
+            box-shadow: 0 25px 60px -10px rgba(99, 102, 241, 0.25), 0 10px 30px -5px rgba(0, 0, 0, 0.15);
             max-width: 680px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            animation: slideUpModal 0.3s cubic-bezier(0.34,1.56,0.64,1);
-            border: 1px solid rgba(199,210,254,0.5);
+            animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(199, 210, 254, 0.5);
         }
+
         @keyframes slideUpModal {
-            from { transform: translateY(40px) scale(0.97); opacity: 0; }
-            to   { transform: translateY(0) scale(1);       opacity: 1; }
+            from {
+                transform: translateY(40px) scale(0.97);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
+
         .info-header {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             padding: 2rem 2rem 1.5rem;
             border-radius: 1.5rem 1.5rem 0 0;
             position: relative;
         }
+
         .info-close-btn {
             position: absolute;
             top: 1rem;
@@ -96,7 +114,7 @@
             width: 2rem;
             height: 2rem;
             border-radius: 50%;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
             cursor: pointer;
@@ -106,8 +124,15 @@
             transition: background 0.2s;
             font-size: 1rem;
         }
-        .info-close-btn:hover { background: rgba(255,255,255,0.35); }
-        .info-body { padding: 1.75rem 2rem 2rem; }
+
+        .info-close-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .info-body {
+            padding: 1.75rem 2rem 2rem;
+        }
+
         .info-section {
             background: #f8faff;
             border: 1px solid #e0e7ff;
@@ -115,6 +140,7 @@
             padding: 1rem 1.25rem;
             margin-bottom: 1rem;
         }
+
         .info-section-title {
             font-weight: 700;
             font-size: 0.8rem;
@@ -125,12 +151,19 @@
             align-items: center;
             gap: 0.4rem;
         }
-        .info-section p, .info-section li {
+
+        .info-section p,
+        .info-section li {
             font-size: 0.875rem;
             color: #475569;
             line-height: 1.6;
         }
-        .info-section ul { padding-left: 1.1rem; margin-top: 0.35rem; }
+
+        .info-section ul {
+            padding-left: 1.1rem;
+            margin-top: 0.35rem;
+        }
+
         .sheet-badge {
             display: inline-flex;
             align-items: center;
@@ -141,6 +174,7 @@
             border-radius: 9999px;
             margin-bottom: 0.4rem;
         }
+
         .threshold-bar-wrap {
             margin-top: 0.6rem;
             background: #e0e7ff;
@@ -149,11 +183,13 @@
             position: relative;
             overflow: hidden;
         }
+
         .threshold-bar-fill {
             height: 100%;
             border-radius: 9999px;
             background: linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #10b981 80%);
         }
+
         .threshold-marker {
             position: absolute;
             top: -4px;
@@ -162,6 +198,90 @@
             height: 18px;
             background: #4f46e5;
             border-radius: 2px;
+        }
+
+        /* ─── STATS DASHBOARD ───────────────────────────────── */
+        .stat-card {
+            background: #fff;
+            border-radius: 1.25rem;
+            padding: 1.4rem 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 12px 0 rgba(99, 102, 241, 0.07);
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px 0 rgba(99, 102, 241, 0.13);
+        }
+
+        .stat-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.1rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        /* Circular progress */
+        .stat-ring-wrap {
+            background: #fff;
+            border-radius: 1.25rem;
+            padding: 1.4rem 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 12px 0 rgba(99, 102, 241, 0.07);
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-ring-wrap:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px 0 rgba(99, 102, 241, 0.13);
+        }
+
+        .ring-svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: #e0e7ff;
+            stroke-width: 7;
+        }
+
+        .ring-fill {
+            fill: none;
+            stroke-width: 7;
+            stroke-linecap: round;
+            stroke: url(#ringGradient);
+            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ring-text-group {
+            text-anchor: middle;
+            dominant-baseline: middle;
         }
     </style>
 </head>
@@ -272,6 +392,69 @@
                 </button>
             </div>
 
+            <!-- ── Tablero de estadísticas ── -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+                <!-- Total registros -->
+                <div class="stat-card col-span-2 lg:col-span-1">
+                    <div class="stat-icon bg-indigo-100 text-indigo-600">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label text-indigo-400">Total comparados</div>
+                        <div class="stat-value text-indigo-700" id="statTotal">0</div>
+                    </div>
+                </div>
+
+                <!-- Coincidencias -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-emerald-100 text-emerald-600">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label text-emerald-500">Coincidencias</div>
+                        <div class="stat-value text-emerald-600" id="statMatches">0</div>
+                    </div>
+                </div>
+
+                <!-- No encontrados -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-rose-100 text-rose-500">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label text-rose-400">No encontrados</div>
+                        <div class="stat-value text-rose-500" id="statNotFound">0</div>
+                    </div>
+                </div>
+
+                <!-- % Match global con anillo -->
+                <div class="stat-ring-wrap">
+                    <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
+                        <defs>
+                            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#6366f1" />
+                                <stop offset="100%" stop-color="#10b981" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="36" cy="36" r="28" />
+                        <circle id="ringFill" class="ring-fill" cx="36" cy="36" r="28" stroke-dasharray="175.93"
+                            stroke-dashoffset="175.93" />
+                        <g class="ring-text-group" transform="rotate(90,36,36)">
+                            <text id="ringPct" x="36" y="34" fill="#4f46e5" font-size="12" font-weight="800"
+                                font-family="sans-serif">0%</text>
+                            <text x="36" y="46" fill="#94a3b8" font-size="7" font-family="sans-serif">match</text>
+                        </g>
+                    </svg>
+                    <div>
+                        <div class="stat-label text-violet-400">% Match global</div>
+                        <div class="stat-value text-violet-700" id="statPct">0%</div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- ── Fin tablero ── -->
+
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
                 <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
                     <table class="min-w-full divide-y divide-slate-200">
@@ -301,7 +484,8 @@
     </div>
 
     <!-- ─── MODAL DE INFORMACIÓN ──────────────────────────────────── -->
-    <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle" onclick="handleModalBackdropClick(event)">
+    <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle"
+        onclick="handleModalBackdropClick(event)">
         <div id="infoModalBox">
             <!-- Header -->
             <div class="info-header">
@@ -309,11 +493,13 @@
                     <i class="fas fa-xmark"></i>
                 </button>
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-white bg-opacity-20 flex items-center justify-center flex-shrink-0">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-white bg-opacity-20 flex items-center justify-center flex-shrink-0">
                         <i class="fas fa-magnifying-glass-chart text-white text-2xl"></i>
                     </div>
                     <div>
-                        <h2 id="infoModalTitle" class="text-white font-extrabold text-xl leading-tight">¿Cómo funciona el Comparador?</h2>
+                        <h2 id="infoModalTitle" class="text-white font-extrabold text-xl leading-tight">¿Cómo funciona
+                            el Comparador?</h2>
                         <p class="text-indigo-200 text-sm mt-0.5">Guía completa de funciones y resultados</p>
                     </div>
                 </div>
@@ -327,8 +513,12 @@
                     <div class="info-section-title text-indigo-700">
                         <i class="fas fa-bolt text-indigo-500"></i> ¿Qué hace la aplicación?
                     </div>
-                    <p>Toma cada nombre del <strong>Archivo 1 (Lista Principal)</strong> y lo busca dentro del <strong>Archivo 2 (Lista de Comparación)</strong>. Por cada nombre, determina cuál es su mejor coincidencia posible y con qué porcentaje de similitud.</p>
-                    <p class="mt-2">Antes de comparar, los nombres se <strong>normalizan automáticamente</strong>: se convierten a mayúsculas, se eliminan acentos y espacios extra, de modo que <em>"García"</em> y <em>"Garcia"</em> son equivalentes.</p>
+                    <p>Toma cada nombre del <strong>Archivo 1 (Lista Principal)</strong> y lo busca dentro del
+                        <strong>Archivo 2 (Lista de Comparación)</strong>. Por cada nombre, determina cuál es su mejor
+                        coincidencia posible y con qué porcentaje de similitud.</p>
+                    <p class="mt-2">Antes de comparar, los nombres se <strong>normalizan automáticamente</strong>: se
+                        convierten a mayúsculas, se eliminan acentos y espacios extra, de modo que <em>"García"</em> y
+                        <em>"Garcia"</em> son equivalentes.</p>
                 </div>
 
                 <!-- Umbral -->
@@ -336,7 +526,8 @@
                     <div class="info-section-title text-amber-700">
                         <i class="fas fa-sliders text-amber-500"></i> Umbral de coincidencia (80%)
                     </div>
-                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud entre dos nombres es <strong>≥ 80%</strong>. Por debajo de ese valor se clasifica como <strong>NO ENCONTRADO</strong>.</p>
+                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud entre dos nombres es <strong>≥
+                            80%</strong>. Por debajo de ese valor se clasifica como <strong>NO ENCONTRADO</strong>.</p>
                     <div class="threshold-bar-wrap mt-3">
                         <div class="threshold-bar-fill" style="width:100%"></div>
                         <div class="threshold-marker" style="left:80%" title="80% — umbral"></div>
@@ -373,9 +564,13 @@
                     </div>
 
                     <ul>
-                        <li><strong class="text-emerald-700">Coincidencias</strong> — Todos los nombres del Archivo 1 que encontraron pareja en el Archivo 2 con similitud ≥ 80%.</li>
-                        <li class="mt-1"><strong class="text-rose-700">No encontrados</strong> — Nombres del Archivo 1 sin ninguna coincidencia suficiente en el Archivo 2. Son candidatos a revisión manual.</li>
-                        <li class="mt-1"><strong class="text-amber-700">Duplicados detectados</strong> — Nombres que aparecen más de una vez en el <em>Archivo 2</em> (después de normalizar). Esto puede causar ambigüedad en la comparación y conviene limpiarlos antes de volver a procesar.</li>
+                        <li><strong class="text-emerald-700">Coincidencias</strong> — Todos los nombres del Archivo 1
+                            que encontraron pareja en el Archivo 2 con similitud ≥ 80%.</li>
+                        <li class="mt-1"><strong class="text-rose-700">No encontrados</strong> — Nombres del Archivo 1
+                            sin ninguna coincidencia suficiente en el Archivo 2. Son candidatos a revisión manual.</li>
+                        <li class="mt-1"><strong class="text-amber-700">Duplicados detectados</strong> — Nombres que
+                            aparecen más de una vez en el <em>Archivo 2</em> (después de normalizar). Esto puede causar
+                            ambigüedad en la comparación y conviene limpiarlos antes de volver a procesar.</li>
                     </ul>
                 </div>
 
@@ -384,7 +579,9 @@
                     <div class="info-section-title text-violet-700">
                         <i class="fas fa-table-columns text-violet-500"></i> Selección de columna
                     </div>
-                    <p>Al cargar cada archivo, la app lee automáticamente sus encabezados y te permite elegir <strong>qué columna contiene los nombres</strong> a comparar. Si tu Excel tiene varias columnas (Nombre, Apellido, CURP, etc.) puedes seleccionar exactamente la que necesitas.</p>
+                    <p>Al cargar cada archivo, la app lee automáticamente sus encabezados y te permite elegir
+                        <strong>qué columna contiene los nombres</strong> a comparar. Si tu Excel tiene varias columnas
+                        (Nombre, Apellido, CURP, etc.) puedes seleccionar exactamente la que necesitas.</p>
                 </div>
 
             </div>
@@ -522,6 +719,18 @@
 
                 currentExcelB64 = data.excel_b64;
 
+                // ── Calcular y animar el tablero de estadísticas ──
+                const total = data.results.length;
+                const matches = data.results.filter(r => r["Resultado"] === "COINCIDENCIA").length;
+                const notFound = total - matches;
+                const pct = total > 0 ? Math.round((matches / total) * 100) : 0;
+
+                animateCounter('statTotal', total);
+                animateCounter('statMatches', matches);
+                animateCounter('statNotFound', notFound);
+                animatePct('statPct', pct);
+                animateRing(pct);
+
                 // Mostrar resultados con animación
                 resultsArea.classList.remove('hidden');
 
@@ -575,6 +784,70 @@
 
             currentExcelB64 = null;
             document.getElementById('submitBtn').disabled = false;
+        }
+
+        // ─── Animaciones del tablero de estadísticas ─────────────────────────────
+        function animateCounter(id, target, suffix = '') {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const duration = 900;
+            const start = performance.now();
+            const startVal = 0;
+            function step(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(startVal + eased * (target - startVal)) + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function animatePct(id, target) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const duration = 900;
+            const start = performance.now();
+            function step(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(eased * target);
+                el.textContent = current + '%';
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function animateRing(pct) {
+            const circumference = 175.93;
+            const ringFill = document.getElementById('ringFill');
+            const ringText = document.getElementById('ringPct');
+            if (!ringFill || !ringText) return;
+            // Reset before animating
+            ringFill.style.transition = 'none';
+            ringFill.style.strokeDashoffset = circumference;
+            ringText.textContent = '0%';
+            // Trigger reflow then animate
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    ringFill.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
+                    const offset = circumference - (pct / 100) * circumference;
+                    ringFill.style.strokeDashoffset = offset;
+                    // Animate text inside ring in sync
+                    const duration = 900;
+                    const start = performance.now();
+                    function step(now) {
+                        const elapsed = now - start;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        ringText.textContent = Math.round(eased * pct) + '%';
+                        if (progress < 1) requestAnimationFrame(step);
+                    }
+                    requestAnimationFrame(step);
+                });
+            });
         }
 
         // ─── Modal de Información ────────────────────────────────────────────────
