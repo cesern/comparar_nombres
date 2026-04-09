@@ -31,7 +31,10 @@ def normalize_name(name):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
-    return templates.TemplateResponse("index.html", context={"request": request})
+    return templates.TemplateResponse(
+        name="index.html",
+        context={"request": request}
+    )
 
 @app.post("/compare")
 async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
