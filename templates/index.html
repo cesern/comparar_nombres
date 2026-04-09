@@ -46,16 +46,138 @@
             border-color: #10b981;
             box-shadow: 0 0 0 3px #d1fae5;
         }
+
+        /* ─── INFO MODAL ─────────────────────────────────── */
+        #infoModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            animation: fadeInOverlay 0.2s ease;
+        }
+        #infoModal.open {
+            display: flex;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        #infoModalBox {
+            background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 60px -10px rgba(99,102,241,0.25), 0 10px 30px -5px rgba(0,0,0,0.15);
+            max-width: 680px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUpModal 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            border: 1px solid rgba(199,210,254,0.5);
+        }
+        @keyframes slideUpModal {
+            from { transform: translateY(40px) scale(0.97); opacity: 0; }
+            to   { transform: translateY(0) scale(1);       opacity: 1; }
+        }
+        .info-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 2rem 2rem 1.5rem;
+            border-radius: 1.5rem 1.5rem 0 0;
+            position: relative;
+        }
+        .info-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            font-size: 1rem;
+        }
+        .info-close-btn:hover { background: rgba(255,255,255,0.35); }
+        .info-body { padding: 1.75rem 2rem 2rem; }
+        .info-section {
+            background: #f8faff;
+            border: 1px solid #e0e7ff;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .info-section-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .info-section p, .info-section li {
+            font-size: 0.875rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .info-section ul { padding-left: 1.1rem; margin-top: 0.35rem; }
+        .sheet-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.7rem;
+            border-radius: 9999px;
+            margin-bottom: 0.4rem;
+        }
+        .threshold-bar-wrap {
+            margin-top: 0.6rem;
+            background: #e0e7ff;
+            border-radius: 9999px;
+            height: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .threshold-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #10b981 80%);
+        }
+        .threshold-marker {
+            position: absolute;
+            top: -4px;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 18px;
+            background: #4f46e5;
+            border-radius: 2px;
+        }
     </style>
 </head>
 
 <body class="bg-slate-50 min-h-screen font-sans text-gray-800">
     <div class="max-w-6xl mx-auto px-4 py-12">
-        <header class="mb-12 text-center">
+        <header class="mb-12 text-center relative">
             <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-3 tracking-tight">Comparador de Nombres
             </h1>
             <p class="text-lg text-slate-600 max-w-2xl mx-auto">Detecta coincidencias entre dos archivos Excel usando
                 Fuzzy Matching avanzado y descarga un reporte completo al instante.</p>
+            <button id="infoBtn" onclick="openInfoModal()"
+                class="mt-5 inline-flex items-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 hover:border-indigo-400 text-indigo-700 font-semibold py-2 px-5 rounded-full shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 text-sm">
+                <i class="fas fa-circle-info text-indigo-500"></i>
+                ¿Cómo funciona?
+            </button>
         </header>
 
         <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-10 border border-slate-100">
@@ -174,6 +296,97 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── MODAL DE INFORMACIÓN ──────────────────────────────────── -->
+    <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle" onclick="handleModalBackdropClick(event)">
+        <div id="infoModalBox">
+            <!-- Header -->
+            <div class="info-header">
+                <button class="info-close-btn" onclick="closeInfoModal()" aria-label="Cerrar">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white bg-opacity-20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-magnifying-glass-chart text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 id="infoModalTitle" class="text-white font-extrabold text-xl leading-tight">¿Cómo funciona el Comparador?</h2>
+                        <p class="text-indigo-200 text-sm mt-0.5">Guía completa de funciones y resultados</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="info-body">
+
+                <!-- ¿Qué hace? -->
+                <div class="info-section">
+                    <div class="info-section-title text-indigo-700">
+                        <i class="fas fa-bolt text-indigo-500"></i> ¿Qué hace la aplicación?
+                    </div>
+                    <p>Toma cada nombre del <strong>Archivo 1 (Lista Principal)</strong> y lo busca dentro del <strong>Archivo 2 (Lista de Comparación)</strong>. Por cada nombre, determina cuál es su mejor coincidencia posible y con qué porcentaje de similitud.</p>
+                    <p class="mt-2">Antes de comparar, los nombres se <strong>normalizan automáticamente</strong>: se convierten a mayúsculas, se eliminan acentos y espacios extra, de modo que <em>"García"</em> y <em>"Garcia"</em> son equivalentes.</p>
+                </div>
+
+                <!-- Umbral -->
+                <div class="info-section">
+                    <div class="info-section-title text-amber-700">
+                        <i class="fas fa-sliders text-amber-500"></i> Umbral de coincidencia (80%)
+                    </div>
+                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud entre dos nombres es <strong>≥ 80%</strong>. Por debajo de ese valor se clasifica como <strong>NO ENCONTRADO</strong>.</p>
+                    <div class="threshold-bar-wrap mt-3">
+                        <div class="threshold-bar-fill" style="width:100%"></div>
+                        <div class="threshold-marker" style="left:80%" title="80% — umbral"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400 mt-1 px-0.5">
+                        <span>0%</span>
+                        <span class="text-indigo-600 font-bold">↑ 80% — umbral</span>
+                        <span>100%</span>
+                    </div>
+                    <ul class="mt-2">
+                        <li>🟢 <strong>100%</strong> — Coincidencia exacta (después de normalizar)</li>
+                        <li>🔵 <strong>80 – 99%</strong> — Similitud alta (pequeñas diferencias de escritura)</li>
+                        <li>🔴 <strong>&lt; 80%</strong> — No encontrado</li>
+                    </ul>
+                </div>
+
+                <!-- Hojas del Excel -->
+                <div class="info-section">
+                    <div class="info-section-title text-emerald-700">
+                        <i class="fas fa-file-excel text-emerald-500"></i> Hojas del Excel descargable
+                    </div>
+                    <p class="mb-3">El archivo Excel exportado contiene <strong>3 hojas</strong>:</p>
+
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="sheet-badge bg-emerald-100 text-emerald-800">
+                            <i class="fas fa-check-circle"></i> Coincidencias
+                        </span>
+                        <span class="sheet-badge bg-rose-100 text-rose-800">
+                            <i class="fas fa-times-circle"></i> No encontrados
+                        </span>
+                        <span class="sheet-badge bg-amber-100 text-amber-800">
+                            <i class="fas fa-copy"></i> Duplicados detectados
+                        </span>
+                    </div>
+
+                    <ul>
+                        <li><strong class="text-emerald-700">Coincidencias</strong> — Todos los nombres del Archivo 1 que encontraron pareja en el Archivo 2 con similitud ≥ 80%.</li>
+                        <li class="mt-1"><strong class="text-rose-700">No encontrados</strong> — Nombres del Archivo 1 sin ninguna coincidencia suficiente en el Archivo 2. Son candidatos a revisión manual.</li>
+                        <li class="mt-1"><strong class="text-amber-700">Duplicados detectados</strong> — Nombres que aparecen más de una vez en el <em>Archivo 2</em> (después de normalizar). Esto puede causar ambigüedad en la comparación y conviene limpiarlos antes de volver a procesar.</li>
+                    </ul>
+                </div>
+
+                <!-- Columna a comparar -->
+                <div class="info-section">
+                    <div class="info-section-title text-violet-700">
+                        <i class="fas fa-table-columns text-violet-500"></i> Selección de columna
+                    </div>
+                    <p>Al cargar cada archivo, la app lee automáticamente sus encabezados y te permite elegir <strong>qué columna contiene los nombres</strong> a comparar. Si tu Excel tiene varias columnas (Nombre, Apellido, CURP, etc.) puedes seleccionar exactamente la que necesitas.</p>
+                </div>
+
             </div>
         </div>
     </div>
@@ -363,6 +576,27 @@
             currentExcelB64 = null;
             document.getElementById('submitBtn').disabled = false;
         }
+
+        // ─── Modal de Información ────────────────────────────────────────────────
+        function openInfoModal() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInfoModal() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function handleModalBackdropClick(e) {
+            if (e.target === document.getElementById('infoModal')) closeInfoModal();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeInfoModal();
+        });
     </script>
 </body>
 
