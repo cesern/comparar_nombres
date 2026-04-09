@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Request
+from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -39,8 +39,20 @@ async def read_item(request: Request):
         {"request": request},
     )
 
+@app.post("/headers")
+async def get_headers(file: UploadFile = File(...)):
+    """Devuelve la lista de columnas (encabezados) de un archivo Excel."""
+    contents = await file.read()
+    df = pd.read_excel(io.BytesIO(contents), nrows=0)  # solo encabezados
+    return {"columns": df.columns.tolist()}
+
 @app.post("/compare")
-async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(...)):
+async def compare_files(
+    file1: UploadFile = File(...),
+    file2: UploadFile = File(...),
+    col1_name: str = Form(""),
+    col2_name: str = Form(""),
+):
     # 1. Leer ambos archivos Excel en memoria
     contents1 = await file1.read()
     contents2 = await file2.read()
@@ -48,9 +60,9 @@ async def compare_files(file1: UploadFile = File(...), file2: UploadFile = File(
     df1 = pd.read_excel(io.BytesIO(contents1))
     df2 = pd.read_excel(io.BytesIO(contents2))
 
-    # 2. Tomar siempre la primera columna
-    col1 = df1.columns[0]
-    col2 = df2.columns[0]
+    # 2. Usar la columna elegida por el usuario (o la primera si no viene)
+    col1 = col1_name if col1_name and col1_name in df1.columns else df1.columns[0]
+    col2 = col2_name if col2_name and col2_name in df2.columns else df2.columns[0]
 
     # 3. Normalizar nombres
     names1 = df1[col1].apply(normalize_name).tolist()
