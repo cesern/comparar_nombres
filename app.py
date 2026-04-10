@@ -120,7 +120,7 @@ async def compare_files(
                 best_original = original_names2[match_idx]
                 
         # Preparar la fila de resultado
-        result_status = "COINCIDENCIA" if best_score >= 80 else "NO ENCONTRADO"
+        result_status = "COINCIDENCIA" if best_score >= 85 else "NO ENCONTRADO"
         
         res_row = {
             "Nombre Archivo 1": str(original_names1[i]),
@@ -158,7 +158,21 @@ async def compare_files(
     # Codificamos el archivo en Base64 para que el frontend pueda descargarlo
     excel_b64 = base64.b64encode(output.read()).decode('utf-8')
     
+    total_processed = len(all_results)
+    matches_count   = len(matches)
+    not_found_count = len(not_found)
+    match_rate      = round((matches_count / total_processed * 100), 1) if total_processed else 0
+
     return {
         "results": all_results,
-        "excel_b64": excel_b64
+        "excel_b64": excel_b64,
+        "stats": {
+            "total_file1": len(names1),
+            "total_file2": len(names2),
+            "total_processed": total_processed,
+            "matches": matches_count,
+            "not_found": not_found_count,
+            "match_rate": match_rate,
+            "duplicates_file2": len(set(duplicates_list))
+        }
     }

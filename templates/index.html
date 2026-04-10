@@ -5,237 +5,1299 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparador de Nombres Excel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="/static/styles.css" rel="stylesheet">
+    <meta name="description" content="Detecta coincidencias entre dos archivos Excel usando Fuzzy Matching avanzado.">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <style>
-        .step-panel { display: none; }
-        .step-panel.visible { display: block; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --indigo: #4f46e5;
+            --indigo-dark: #3730a3;
+            --indigo-light: #e0e7ff;
+            --indigo-mid: #6366f1;
+            --emerald: #059669;
+            --emerald-dark: #047857;
+            --emerald-light: #d1fae5;
+            --rose: #e11d48;
+            --amber: #d97706;
+            --sky: #0284c7;
+            --violet: #7c3aed;
+
+            --bg: #f8faff;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+
+            --text-primary: #1e1b4b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+
+            --sidebar-w: 400px;
+            --radius: 0.875rem;
+            --radius-sm: 0.55rem;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg);
+        }
+
+        /* ══ LAYOUT ══ */
+        .app-shell {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            border-right: 1.5px solid var(--border);
+            box-shadow: 2px 0 20px rgba(79, 70, 229, 0.07);
+            display: flex;
+            flex-direction: column;
+            padding: 1.4rem 1.3rem;
+            gap: 0.85rem;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo-icon {
+            width: 2.1rem;
+            height: 2.1rem;
+            background: linear-gradient(135deg, var(--indigo), var(--indigo-mid));
+            border-radius: 0.55rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(79, 70, 229, 0.35);
+        }
+
+        .brand h1 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .btn-info {
+            background: var(--indigo-light);
+            border: 1px solid #c7d2fe;
+            color: var(--indigo);
+            border-radius: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s;
+        }
+
+        .btn-info:hover {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #fff;
+        }
+
+        .btn-info i {
+            font-size: 0.8rem;
+        }
+
+        .sidebar-desc {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        /* ── Dropzones ── */
+        .dz-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            overflow: hidden;
+        }
+
+        .file-card {
+            background: #fafbff;
+            border: 1.5px dashed #c7d2fe;
+            border-radius: var(--radius-sm);
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            transition: all 0.22s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .file-card:hover {
+            background: var(--indigo-light);
+            border-color: var(--indigo-mid);
+        }
+
+        .file-card.emerald-card {
+            background: #f0fdf9;
+            border-color: #6ee7b7;
+        }
+
+        .file-card.emerald-card:hover {
+            background: var(--emerald-light);
+            border-color: var(--emerald);
+        }
+
+        .file-card.ready-indigo {
+            border-style: solid;
+            border-color: var(--indigo-mid);
+            background: var(--indigo-light);
+        }
+
+        .file-card.ready-emerald {
+            border-style: solid;
+            border-color: var(--emerald);
+            background: var(--emerald-light);
+        }
+
+        .file-icon {
+            width: 2.1rem;
+            height: 2.1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .file-icon.indigo {
+            background: var(--indigo-light);
+            color: var(--indigo);
+        }
+
+        .file-icon.emerald {
+            background: var(--emerald-light);
+            color: var(--emerald);
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--text-muted);
+        }
+
+        .file-title.em {
+            color: var(--emerald);
+        }
+
+        .file-name {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-chevron {
+            color: #c7d2fe;
+            font-size: 0.7rem;
+        }
+
+        /* ── Selectores ── */
+        .step-panel {
+            display: none;
+        }
+
+        .step-panel.visible {
+            display: grid;
+        }
+
+        .select-group {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .select-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .select-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .select-label.lbl-indigo {
+            color: var(--indigo);
+        }
+
+        .select-label.lbl-emerald {
+            color: var(--emerald);
+        }
 
         .panel-select {
             width: 100%;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
+            padding: 0.38rem 1.7rem 0.38rem 0.6rem;
+            border-radius: 0.4rem;
             border: 1.5px solid #c7d2fe;
-            background: #f8faff;
-            font-size: 0.875rem;
-            color: #312e81;
+            background: #fafbff;
+            font-size: 0.76rem;
+            color: var(--text-primary);
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            font-family: inherit;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234f46e5' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 0.6rem center;
-            background-size: 1.1em;
-            padding-right: 2rem;
+            background-position: right 0.4rem center;
+            background-size: 1em;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .panel-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px #e0e7ff; }
 
-        .panel-select.emerald {
+        .panel-select:focus {
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px var(--indigo-light);
+        }
+
+        .panel-select.em {
             border-color: #6ee7b7;
-            color: #064e3b;
-            background-color: #f0fdf4;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2310b981' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.6rem center;
-            background-size: 1.1em;
-            padding-right: 2rem;
+            background-color: #f0fdf9;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23059669' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
         }
-        .panel-select.emerald:focus { border-color: #10b981; box-shadow: 0 0 0 3px #d1fae5; }
 
-        .step-label {
+        .panel-select.em:focus {
+            border-color: var(--emerald);
+            box-shadow: 0 0 0 3px var(--emerald-light);
+        }
+
+        .panel-select option {
+            background: #fff;
+            color: var(--text-primary);
+        }
+
+        /* ── Loading ── */
+        .loading-area {
+            background: var(--indigo-light);
+            border: 1px solid #c7d2fe;
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .loading-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--indigo);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-bar-track {
+            height: 4px;
+            background: #c7d2fe;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            height: 100%;
+            width: 60%;
+            background: linear-gradient(90deg, var(--indigo), var(--indigo-mid), var(--indigo));
+            background-size: 200%;
+            border-radius: 999px;
+            animation: shimmer 1.4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200%;
+            }
+        }
+
+        /* ── Botones ── */
+        .btn-row {
+            display: flex;
+            gap: 0.6rem;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: var(--indigo);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 1rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--indigo-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f8faff;
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.7rem 0.9rem;
+            font-size: 0.88rem;
+            font-family: inherit;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-bottom: 0.35rem;
+            transition: all 0.2s;
         }
-        .step-label.indigo { color: #4338ca; }
-        .step-label.emerald { color: #065f46; }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 13px; height: 13px;
-            border: 2px solid #c7d2fe;
-            border-top-color: #6366f1;
+        .btn-secondary:hover {
+            background: #fff0f3;
+            color: var(--rose);
+            border-color: #fecdd3;
+        }
+
+        /* ══ PANEL PRINCIPAL ══ */
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 2rem;
+            gap: 1.5rem;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        /* Estado vacío */
+        .empty-state {
+            text-align: center;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #c7d2fe;
+        }
+
+        .empty-state h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            margin-bottom: 0.45rem;
+        }
+
+        .empty-state p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            max-width: 300px;
+            line-height: 1.6;
+        }
+
+        /* ── Dashboard ── */
+        .dashboard {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dash-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dash-title i {
+            color: var(--indigo);
+        }
+
+        .btn-download {
+            background: var(--emerald);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 1.1rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: background 0.2s, transform 0.15s;
+            box-shadow: 0 3px 10px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-download:hover {
+            background: var(--emerald-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Grilla tarjetas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.85rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.05rem 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            border: 1.5px solid var(--border);
+            box-shadow: 0 1px 4px rgba(79, 70, 229, 0.05);
+            transition: transform 0.18s, box-shadow 0.18s;
+            animation: cardIn 0.4s ease both;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.1);
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card:nth-child(1) {
+            animation-delay: .04s
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: .08s
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: .12s
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: .16s
+        }
+
+        .stat-card:nth-child(5) {
+            animation-delay: .20s
+        }
+
+        .stat-card:nth-child(6) {
+            animation-delay: .24s
+        }
+
+        .stat-icon {
+            width: 2.6rem;
+            height: 2.6rem;
+            border-radius: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.63rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-top: 0.2rem;
+            color: var(--text-muted);
+        }
+
+        /* Variantes */
+        .card-violet {
+            border-color: #ddd6fe;
+        }
+
+        .card-violet .stat-icon {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .card-violet .stat-value {
+            color: #4c1d95;
+        }
+
+        .card-violet .stat-label {
+            color: #7c3aed;
+        }
+
+        .card-sky {
+            border-color: #bae6fd;
+        }
+
+        .card-sky .stat-icon {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .card-sky .stat-value {
+            color: #0c4a6e;
+        }
+
+        .card-sky .stat-label {
+            color: #0284c7;
+        }
+
+        .card-emerald {
+            border-color: #a7f3d0;
+        }
+
+        .card-emerald .stat-icon {
+            background: var(--emerald-light);
+            color: var(--emerald);
+        }
+
+        .card-emerald .stat-value {
+            color: #064e3b;
+        }
+
+        .card-emerald .stat-label {
+            color: var(--emerald);
+        }
+
+        .card-rose {
+            border-color: #fecdd3;
+        }
+
+        .card-rose .stat-icon {
+            background: #fff1f2;
+            color: var(--rose);
+        }
+
+        .card-rose .stat-value {
+            color: #881337;
+        }
+
+        .card-rose .stat-label {
+            color: var(--rose);
+        }
+
+        .card-indigo {
+            border-color: #c7d2fe;
+        }
+
+        .card-indigo .stat-icon {
+            background: var(--indigo-light);
+            color: var(--indigo);
+        }
+
+        .card-indigo .stat-value {
+            color: var(--indigo-dark);
+        }
+
+        .card-indigo .stat-label {
+            color: var(--indigo);
+        }
+
+        .card-amber {
+            border-color: #fde68a;
+        }
+
+        .card-amber .stat-icon {
+            background: #fffbeb;
+            color: var(--amber);
+        }
+
+        .card-amber .stat-value {
+            color: #78350f;
+        }
+
+        .card-amber .stat-label {
+            color: var(--amber);
+        }
+
+        .match-bar-track {
+            height: 5px;
+            border-radius: 999px;
+            background: var(--indigo-light);
+            margin-top: 0.4rem;
+            overflow: hidden;
+        }
+
+        .match-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--indigo-mid), var(--indigo));
+            transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ══ MODAL ══ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(30, 27, 75, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 1.25rem;
+            width: 100%;
+            max-width: 660px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2rem 2.25rem;
+            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.15);
+            transform: translateY(20px);
+            transition: transform 0.25s;
+        }
+
+        .modal-overlay.open .modal {
+            transform: translateY(0);
+        }
+
+        .modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal::-webkit-scrollbar-track {
+            background: #f8faff;
+        }
+
+        .modal::-webkit-scrollbar-thumb {
+            background: #c7d2fe;
+            border-radius: 999px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--indigo), var(--indigo-mid));
+            border-radius: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .modal-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        .modal-close {
+            background: #f8faff;
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: #fff0f3;
+            color: var(--rose);
+            border-color: #fecdd3;
+        }
+
+        .modal-section {
+            margin-bottom: 1.4rem;
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--indigo-light);
+            border: 1px solid #c7d2fe;
+            color: var(--indigo);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            margin-bottom: 0.65rem;
+        }
+
+        .modal-section h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-section p {
+            font-size: 0.81rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .info-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            margin-top: 0.5rem;
+        }
+
+        .info-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            background: #fafbff;
+            border: 1.5px solid var(--border);
+            border-radius: 0.65rem;
+            padding: 0.65rem 0.85rem;
+        }
+
+        .step-num {
+            width: 1.5rem;
+            height: 1.5rem;
+            flex-shrink: 0;
+            background: var(--indigo);
             border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            vertical-align: middle;
-            margin-right: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #fff;
         }
-        .loading-spinner.emerald {
-            border-color: #6ee7b7;
-            border-top-color: #10b981;
+
+        .step-text {
+            font-size: 0.79rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .step-text strong {
+            color: var(--text-primary);
+        }
+
+        .excel-sheets {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .sheet-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            background: #fafbff;
+            border: 1.5px solid var(--border);
+            border-radius: 0.55rem;
+            padding: 0.55rem 0.8rem;
+        }
+
+        .sheet-badge {
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .badge-green {
+            background: var(--emerald-light);
+            color: var(--emerald-dark);
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-red {
+            background: #fff1f2;
+            color: var(--rose);
+            border: 1px solid #fecdd3;
+        }
+
+        .badge-amber {
+            background: #fffbeb;
+            color: var(--amber);
+            border: 1px solid #fde68a;
+        }
+
+        .sheet-desc {
+            font-size: 0.79rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .sheet-desc strong {
+            color: var(--text-primary);
+        }
+
+        .threshold-box {
+            margin-top: 0.6rem;
+            background: var(--indigo-light);
+            border: 1.5px solid #c7d2fe;
+            border-radius: 0.65rem;
+            padding: 0.7rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .threshold-box i {
+            color: var(--indigo);
+            font-size: 1.1rem;
+        }
+
+        .threshold-box p {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .threshold-box strong {
+            color: var(--indigo-dark);
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen font-sans text-gray-800">
-    <div class="max-w-6xl mx-auto px-4 py-12">
-        <header class="mb-12 text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-3 tracking-tight">Comparador de Nombres</h1>
-            <p class="text-lg text-slate-600 max-w-2xl mx-auto">Detecta coincidencias entre dos archivos Excel usando
-                Fuzzy Matching avanzado y descarga un reporte completo al instante.</p>
-        </header>
+<body>
+    <div class="app-shell">
 
-        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-10 border border-slate-100">
-            <form id="compareForm" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                <!-- ══════════════════ ARCHIVO 1 ══════════════════ -->
-                <div class="flex flex-col gap-3">
-                    <!-- Dropzone -->
-                    <div id="dz1"
-                        class="border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:bg-indigo-50 hover:border-indigo-500 transition-all cursor-pointer group"
-                        onclick="document.getElementById('file1').click()">
-                        <input type="file" id="file1" name="file1" accept=".xlsx,.xls" class="hidden" required
-                            onchange="onFileSelected(1)">
-                        <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-file-excel text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-700">Archivo 1 (Lista Principal)</h3>
-                        <p id="name1" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o arrastra el archivo aquí</p>
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="header-top">
+                    <div class="brand">
+                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <h1>Comparador de Nombres</h1>
                     </div>
+                    <button class="btn-info" onclick="openModal()">
+                        <i class="fas fa-circle-info"></i> Información
+                    </button>
+                </div>
+                <p class="sidebar-desc">Detecta coincidencias entre dos listas Excel usando <strong
+                        style="color:var(--indigo)">Fuzzy Matching</strong> avanzado.</p>
+            </div>
 
-                    <!-- Selector hoja 1 -->
-                    <div id="sheetWrap1" class="step-panel bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
-                        <div class="step-label indigo"><i class="fas fa-layer-group"></i> Hoja de trabajo</div>
-                        <select id="sheetSelect1" class="panel-select"
-                            onchange="onSheetSelected(1)">
-                        </select>
+            <div class="divider"></div>
+
+            <form id="compareForm" class="dz-group">
+
+                <!-- Archivo 1 -->
+                <div class="file-card" id="dz1" onclick="document.getElementById('file1').click()">
+                    <input type="file" id="file1" name="file1" accept=".xlsx,.xls" style="display:none" required
+                        onchange="onFileSelected(1)">
+                    <div class="file-icon indigo"><i class="fas fa-file-excel"></i></div>
+                    <div class="file-info">
+                        <div class="file-title">Archivo 1 · Lista Principal</div>
+                        <div class="file-name" id="name1">Haz clic para seleccionar</div>
                     </div>
+                    <i class="fas fa-chevron-right file-chevron"></i>
+                </div>
 
-                    <!-- Selector columna 1 -->
-                    <div id="colWrap1" class="step-panel bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
-                        <div class="step-label indigo"><i class="fas fa-columns"></i> Columna a comparar</div>
+                <div id="selWrap1" class="step-panel select-group">
+                    <div class="select-wrap">
+                        <div class="select-label lbl-indigo"><i class="fas fa-layer-group"></i> Hoja</div>
+                        <select id="sheetSelect1" class="panel-select" onchange="onSheetSelected(1)"></select>
+                    </div>
+                    <div class="select-wrap">
+                        <div class="select-label lbl-indigo"><i class="fas fa-columns"></i> Columna</div>
                         <select id="colSelect1" name="col1_name" class="panel-select"></select>
                     </div>
                 </div>
 
-                <!-- ══════════════════ ARCHIVO 2 ══════════════════ -->
-                <div class="flex flex-col gap-3">
-                    <!-- Dropzone -->
-                    <div id="dz2"
-                        class="border-2 border-dashed border-emerald-300 rounded-xl p-8 text-center hover:bg-emerald-50 hover:border-emerald-500 transition-all cursor-pointer group"
-                        onclick="document.getElementById('file2').click()">
-                        <input type="file" id="file2" name="file2" accept=".xlsx,.xls" class="hidden" required
-                            onchange="onFileSelected(2)">
-                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                            <i class="fas fa-file-excel text-2xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-700">Archivo 2 (Lista de Comparación)</h3>
-                        <p id="name2" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o arrastra el archivo aquí</p>
-                    </div>
+                <div class="divider"></div>
 
-                    <!-- Selector hoja 2 -->
-                    <div id="sheetWrap2" class="step-panel bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                        <div class="step-label emerald"><i class="fas fa-layer-group"></i> Hoja de trabajo</div>
-                        <select id="sheetSelect2" class="panel-select emerald"
-                            onchange="onSheetSelected(2)">
-                        </select>
+                <!-- Archivo 2 -->
+                <div class="file-card emerald-card" id="dz2" onclick="document.getElementById('file2').click()">
+                    <input type="file" id="file2" name="file2" accept=".xlsx,.xls" style="display:none" required
+                        onchange="onFileSelected(2)">
+                    <div class="file-icon emerald"><i class="fas fa-file-excel"></i></div>
+                    <div class="file-info">
+                        <div class="file-title em">Archivo 2 · Lista de Comparación</div>
+                        <div class="file-name" id="name2">Haz clic para seleccionar</div>
                     </div>
+                    <i class="fas fa-chevron-right file-chevron"></i>
+                </div>
 
-                    <!-- Selector columna 2 -->
-                    <div id="colWrap2" class="step-panel bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                        <div class="step-label emerald"><i class="fas fa-columns"></i> Columna a comparar</div>
-                        <select id="colSelect2" name="col2_name" class="panel-select emerald"></select>
+                <div id="selWrap2" class="step-panel select-group">
+                    <div class="select-wrap">
+                        <div class="select-label lbl-emerald"><i class="fas fa-layer-group"></i> Hoja</div>
+                        <select id="sheetSelect2" class="panel-select em" onchange="onSheetSelected(2)"></select>
+                    </div>
+                    <div class="select-wrap">
+                        <div class="select-label lbl-emerald"><i class="fas fa-columns"></i> Columna</div>
+                        <select id="colSelect2" name="col2_name" class="panel-select em"></select>
+                    </div>
+                </div>
+
+                <div style="flex:0.25"></div>
+
+                <!-- Loading -->
+                <div id="loadingArea" class="loading-area" style="display:none">
+                    <div class="loading-top">
+                        <span><i class="fas fa-cog fa-spin"></i> Procesando registros…</span>
+                        <span>Calculando coincidencias…</span>
+                    </div>
+                    <div class="loading-bar-track">
+                        <div class="loading-bar-fill"></div>
                     </div>
                 </div>
 
                 <!-- Botones -->
-                <div class="col-span-1 md:col-span-2 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-                    <button type="submit" id="submitBtn"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fas fa-bolt"></i>
-                        <span>Comparar Archivos Ahora</span>
+                <div class="btn-row">
+                    <button type="submit" id="submitBtn" class="btn-primary">
+                        <i class="fas fa-bolt"></i> Comparar
                     </button>
-                    <button type="button" id="resetBtn" onclick="resetForm()"
-                        class="bg-slate-200 hover:bg-rose-100 text-slate-600 hover:text-rose-700 border border-slate-300 hover:border-rose-300 font-bold py-4 px-8 rounded-full shadow transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-redo-alt"></i>
-                        <span>Reiniciar</span>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">
+                        <i class="fas fa-redo-alt"></i> Reiniciar
                     </button>
                 </div>
+
             </form>
+        </aside>
 
-            <!-- Área de carga -->
-            <div id="loadingArea" class="hidden mt-10 p-6 bg-slate-50 rounded-xl border border-slate-200">
-                <div class="mb-3 flex justify-between items-center font-semibold text-indigo-800">
-                    <span class="flex items-center"><i class="fas fa-cog fa-spin mr-2"></i> Procesando registros...</span>
-                    <span class="animate-pulse text-indigo-600">Calculando coincidencias fuzzy...</span>
-                </div>
-                <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden relative shadow-inner">
-                    <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 loading-bar rounded-full"></div>
-                </div>
-            </div>
-        </div>
+        <!-- ══ PANEL PRINCIPAL ══ -->
+        <main class="main-panel">
 
-        <!-- Resultados -->
-        <div id="resultsArea" class="hidden animate-fade-in">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-2xl font-bold text-slate-800 flex items-center">
-                    <i class="fas fa-table text-indigo-500 mr-2"></i> Resultados de la Comparación
-                </h2>
-                <button id="downloadBtn"
-                    class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 flex items-center">
-                    <i class="fas fa-file-download mr-2 text-xl"></i> Exportar a Excel
-                </button>
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
+                <h2>Sin resultados aún</h2>
+                <p>Selecciona dos archivos Excel, elige hoja y columna, y presiona <strong
+                        style="color:var(--indigo)">Comparar</strong>.</p>
             </div>
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-                <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-50 sticky top-0 shadow-sm z-10">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Archivo 1</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Mejor Coincidencia Archivo 2</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Similitud</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Resultado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsTableBody" class="bg-white divide-y divide-slate-100"></tbody>
-                    </table>
+
+            <div class="dashboard" id="resultsArea" style="display:none">
+                <div class="dash-header">
+                    <div class="dash-title"><i class="fas fa-chart-bar"></i> Resumen de la Comparación</div>
+                    <button class="btn-download" id="downloadBtn">
+                        <i class="fas fa-file-download"></i> Exportar Excel
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card card-violet">
+                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <div class="stat-value" id="st-total1">—</div>
+                            <div class="stat-label">Elementos Archivo 1</div>
+                        </div>
+                    </div>
+                    <div class="stat-card card-sky">
+                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <div class="stat-value" id="st-total2">—</div>
+                            <div class="stat-label">Elementos Archivo 2</div>
+                        </div>
+                    </div>
+                    <div class="stat-card card-emerald">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <div class="stat-value" id="st-matches">—</div>
+                            <div class="stat-label">Coincidencias</div>
+                        </div>
+                    </div>
+                    <div class="stat-card card-rose">
+                        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                        <div>
+                            <div class="stat-value" id="st-notfound">—</div>
+                            <div class="stat-label">No Encontrados</div>
+                        </div>
+                    </div>
+                    <div class="stat-card card-indigo">
+                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                        <div style="flex:1;min-width:0">
+                            <div class="stat-value" id="st-rate">—</div>
+                            <div class="stat-label">Tasa de Coincidencia</div>
+                            <div class="match-bar-track">
+                                <div class="match-bar-fill" id="st-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card card-amber">
+                        <div class="stat-icon"><i class="fas fa-copy"></i></div>
+                        <div>
+                            <div class="stat-value" id="st-dupes">—</div>
+                            <div class="stat-label">Duplicados Archivo 2</div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+        </main>
+    </div>
+
+    <!-- ══ MODAL INFORMACIÓN ══ -->
+    <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+        <div class="modal">
+
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-logo"><i class="fas fa-bolt"></i></div>
+                    <div>
+                        <div class="modal-title">¿Cómo funciona?</div>
+                        <div class="modal-subtitle">Guía del Comparador de Nombres</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-section">
+                <div class="section-tag"><i class="fas fa-rocket"></i> La aplicación</div>
+                <h3>¿Qué hace esta herramienta?</h3>
+                <p>Compara dos listas de nombres en archivos Excel y determina si cada nombre del <strong>Archivo
+                        1</strong> aparece — exacta o aproximadamente — en el <strong>Archivo 2</strong>. Diseñada para
+                    datos reales con diferencias de acentos, mayúsculas, espacios o errores tipográficos.</p>
+            </div>
+
+            <div class="modal-section">
+                <div class="section-tag"><i class="fas fa-list-ol"></i> Flujo de uso</div>
+                <h3>Cómo utilizarla paso a paso</h3>
+                <div class="info-steps">
+                    <div class="info-step">
+                        <div class="step-num">1</div>
+                        <div class="step-text"><strong>Sube el Archivo 1</strong> — la lista principal cuyos nombres
+                            quieres verificar.</div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-num">2</div>
+                        <div class="step-text"><strong>Selecciona hoja y columna</strong> con los nombres en ese
+                            archivo.</div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-num">3</div>
+                        <div class="step-text"><strong>Sube el Archivo 2</strong> — la lista de referencia.</div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-num">4</div>
+                        <div class="step-text"><strong>Selecciona hoja y columna</strong> del Archivo 2.</div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-num">5</div>
+                        <div class="step-text">Presiona <strong>Comparar</strong> — el algoritmo procesa y muestra el
+                            resumen estadístico.</div>
+                    </div>
+                    <div class="info-step">
+                        <div class="step-num">6</div>
+                        <div class="step-text">Usa <strong>Exportar Excel</strong> para descargar el reporte completo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="section-tag"><i class="fas fa-microchip"></i> El algoritmo</div>
+                <h3>Fuzzy Matching con RapidFuzz</h3>
+                <p>Primero se <strong>normalizan</strong> los nombres: mayúsculas, sin acentos, sin espacios duplicados.
+                    Luego usa <strong>Token Sort Ratio</strong>, que reordena palabras antes de comparar — así «JUAN
+                    PÉREZ» y «PÉREZ JUAN» se reconocen como la misma persona.</p>
+                <div class="threshold-box">
+                    <i class="fas fa-sliders"></i>
+                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud es ≥ <strong>85 / 100</strong>.
+                        Exactamente 100 = coincidencia perfecta. Por debajo de 85 = <strong>NO ENCONTRADO</strong>.</p>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <div class="section-tag"><i class="fas fa-file-excel"></i> Archivo resultante</div>
+                <h3>¿Qué contiene el Excel exportado?</h3>
+                <p>El archivo contiene tres hojas:</p>
+                <div class="excel-sheets">
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-green">✓ Coincidencias</span>
+                        <div class="sheet-desc">Nombres del Archivo 1 que <strong>sí se encontraron</strong> en el
+                            Archivo 2, con la mejor coincidencia y similitud (≥ 85%).</div>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-red">✗ No encontrados</span>
+                        <div class="sheet-desc">Nombres que <strong>no tienen coincidencia</strong> suficiente.
+                            Similitud menor a 85%. Útil detectar omisiones o errores.</div>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-amber">⚠ Duplicados</span>
+                        <div class="sheet-desc">Nombres <strong>repetidos</strong> en el Archivo 2 (tras normalizar).
+                            Pueden inflar resultados artificialmente.</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // ─── Estado ──────────────────────────────────────────────────────────────
         let currentExcelB64 = null;
 
-        // ─── Paso 1: Archivo seleccionado → cargar hojas ─────────────────────────
+        function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+        function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
         async function onFileSelected(n) {
-            const input     = document.getElementById(`file${n}`);
-            const nameEl    = document.getElementById(`name${n}`);
-            const dz        = document.getElementById(`dz${n}`);
-            const sheetWrap = document.getElementById(`sheetWrap${n}`);
-            const sheetSel  = document.getElementById(`sheetSelect${n}`);
-            const colWrap   = document.getElementById(`colWrap${n}`);
-            const colSel    = document.getElementById(`colSelect${n}`);
-            const isEmerald = n === 2;
+            const input = document.getElementById(`file${n}`);
+            const nameEl = document.getElementById(`name${n}`);
+            const dz = document.getElementById(`dz${n}`);
+            const selWrap = document.getElementById(`selWrap${n}`);
+            const sheetSel = document.getElementById(`sheetSelect${n}`);
+            const colSel = document.getElementById(`colSelect${n}`);
+            const isEm = n === 2;
 
             if (!input.files.length) return;
             const file = input.files[0];
 
-            // Actualizar dropzone
-            const color = isEmerald ? 'text-emerald-600' : 'text-indigo-600';
-            nameEl.innerHTML = `<span class="${color} font-bold"><i class="fas fa-check-circle mr-1"></i>${file.name}</span>`;
-            const [rem, add] = isEmerald
-                ? ['border-emerald-300', 'border-emerald-500']
-                : ['border-indigo-300',  'border-indigo-500'];
-            dz.classList.remove(rem);
-            dz.classList.add(add, 'bg-slate-50');
+            nameEl.textContent = file.name;
+            dz.classList.add(isEm ? 'ready-emerald' : 'ready-indigo');
+            dz.classList.remove('file-card');
 
-            // Resetear pasos siguientes
-            colWrap.classList.remove('visible');
             colSel.innerHTML = '';
-
-            // Mostrar spinner en selector hoja
-            sheetSel.innerHTML = `<option><span class="loading-spinner${isEmerald ? ' emerald' : ''}"></span> Cargando hojas...</option>`;
-            sheetWrap.classList.add('visible');
+            sheetSel.innerHTML = '<option>Cargando hojas…</option>';
+            selWrap.classList.add('visible');
 
             try {
                 const fd = new FormData();
@@ -243,56 +1305,38 @@
                 const res = await fetch('/sheets', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error();
                 const data = await res.json();
-
                 sheetSel.innerHTML = '';
                 data.sheets.forEach(s => {
                     const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.textContent = s;
+                    opt.value = s; opt.textContent = s;
                     sheetSel.appendChild(opt);
                 });
-
-                // Si solo hay una hoja, cargar columnas directamente
                 await loadColumns(n);
-
             } catch {
-                sheetSel.innerHTML = '<option value="">Error al leer las hojas</option>';
+                sheetSel.innerHTML = '<option value="">Error al leer hojas</option>';
             }
         }
 
-        // ─── Paso 2: Hoja seleccionada → cargar columnas ─────────────────────────
-        async function onSheetSelected(n) {
-            await loadColumns(n);
-        }
+        async function onSheetSelected(n) { await loadColumns(n); }
 
         async function loadColumns(n) {
             const fileInput = document.getElementById(`file${n}`);
-            const sheetSel  = document.getElementById(`sheetSelect${n}`);
-            const colWrap   = document.getElementById(`colWrap${n}`);
-            const colSel    = document.getElementById(`colSelect${n}`);
-            const isEmerald = n === 2;
-
+            const sheetSel = document.getElementById(`sheetSelect${n}`);
+            const colSel = document.getElementById(`colSelect${n}`);
             if (!fileInput.files.length) return;
-
-            const sheetName = sheetSel.value;
-
-            colSel.innerHTML = `<option>Cargando columnas...</option>`;
-            colWrap.classList.add('visible');
-
+            colSel.innerHTML = '<option>Cargando columnas…</option>';
             try {
                 const fd = new FormData();
                 fd.append('file', fileInput.files[0]);
-                if (sheetName) fd.append('sheet_name', sheetName);
-
+                if (sheetSel.value) fd.append('sheet_name', sheetSel.value);
                 const res = await fetch('/headers', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error();
                 const data = await res.json();
-
                 colSel.innerHTML = '';
                 data.columns.forEach((col, idx) => {
                     const opt = document.createElement('option');
                     opt.value = col;
-                    opt.textContent = `${String.fromCharCode(65 + idx)}  —  ${col}`;
+                    opt.textContent = `${String.fromCharCode(65 + idx)} — ${col}`;
                     colSel.appendChild(opt);
                 });
             } catch {
@@ -300,120 +1344,87 @@
             }
         }
 
-        // ─── Paso 3: Comparar ─────────────────────────────────────────────────────
         document.getElementById('compareForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const file1 = document.getElementById('file1').files[0];
             const file2 = document.getElementById('file2').files[0];
-            if (!file1 || !file2) {
-                alert("Por favor selecciona ambos archivos para continuar.");
-                return;
-            }
+            if (!file1 || !file2) { alert('Por favor selecciona ambos archivos.'); return; }
 
-            const submitBtn  = document.getElementById('submitBtn');
+            const submitBtn = document.getElementById('submitBtn');
             const loadingArea = document.getElementById('loadingArea');
             const resultsArea = document.getElementById('resultsArea');
-            const tableBody   = document.getElementById('resultsTableBody');
+            const emptyState = document.getElementById('emptyState');
 
             submitBtn.disabled = true;
-            loadingArea.classList.remove('hidden');
-            resultsArea.classList.add('hidden');
-            tableBody.innerHTML = '';
+            loadingArea.style.display = 'block';
+            resultsArea.style.display = 'none';
+            emptyState.style.display = 'none';
 
             const formData = new FormData();
             formData.append('file1', file1);
             formData.append('file2', file2);
-            formData.append('col1_name',   document.getElementById('colSelect1').value   || '');
-            formData.append('col2_name',   document.getElementById('colSelect2').value   || '');
+            formData.append('col1_name', document.getElementById('colSelect1').value || '');
+            formData.append('col2_name', document.getElementById('colSelect2').value || '');
             formData.append('sheet1_name', document.getElementById('sheetSelect1').value || '');
             formData.append('sheet2_name', document.getElementById('sheetSelect2').value || '');
 
             try {
                 const response = await fetch('/compare', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error("Error interno al procesar los archivos");
+                if (!response.ok) throw new Error('Error interno al procesar los archivos');
                 const data = await response.json();
-
-                const resultsToRender = data.results.slice(0, 2000);
-                const fragment = document.createDocumentFragment();
-
-                resultsToRender.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors";
-                    const isMatch    = row["Resultado"] === "COINCIDENCIA";
-                    const badgeClass = isMatch ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-rose-100 text-rose-800 border-rose-200";
-                    const iconClass  = isMatch ? "fa-check-circle text-emerald-500" : "fa-times-circle text-rose-500";
-                    let scoreColor   = "text-slate-500";
-                    if (isMatch) scoreColor = row["Similitud (%)"] === 100 ? "text-emerald-600 font-extrabold" : "text-indigo-600 font-bold";
-
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 text-sm text-slate-900 font-medium">${row["Nombre Archivo 1"]}</td>
-                        <td class="px-6 py-4 text-sm text-slate-600">${row["Mejor Coincidencia Archivo 2"]}</td>
-                        <td class="px-6 py-4 text-sm ${scoreColor}">${row["Similitud (%)"]}%</td>
-                        <td class="px-6 py-4">
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${badgeClass} shadow-sm items-center">
-                                <i class="fas ${iconClass} mr-1.5"></i> ${row["Resultado"]}
-                            </span>
-                        </td>`;
-                    fragment.appendChild(tr);
-                });
-                tableBody.appendChild(fragment);
-
-                if (data.results.length > 2000) {
-                    const msgRow = document.createElement('tr');
-                    msgRow.innerHTML = `<td colspan="4" class="px-6 py-4 text-center text-sm text-slate-500 italic">Se muestran 2,000 de ${data.results.length} resultados. Descarga el Excel para ver todos.</td>`;
-                    tableBody.appendChild(msgRow);
-                }
-
                 currentExcelB64 = data.excel_b64;
-                resultsArea.classList.remove('hidden');
+
+                const s = data.stats;
+                document.getElementById('st-total1').textContent = s.total_file1.toLocaleString();
+                document.getElementById('st-total2').textContent = s.total_file2.toLocaleString();
+                document.getElementById('st-matches').textContent = s.matches.toLocaleString();
+                document.getElementById('st-notfound').textContent = s.not_found.toLocaleString();
+                document.getElementById('st-rate').textContent = s.match_rate + '%';
+                document.getElementById('st-dupes').textContent = s.duplicates_file2.toLocaleString();
+                document.getElementById('st-bar').style.width = '0%';
+
+                resultsArea.style.display = 'flex';
+                setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
 
             } catch (err) {
-                alert("Hubo un error calculando las coincidencias: " + err.message);
+                alert('Hubo un error: ' + err.message);
+                emptyState.style.display = 'block';
             } finally {
                 submitBtn.disabled = false;
-                loadingArea.classList.add('hidden');
+                loadingArea.style.display = 'none';
             }
         });
 
-        // ─── Descarga Excel ───────────────────────────────────────────────────────
         document.getElementById('downloadBtn').addEventListener('click', () => {
             if (!currentExcelB64) return;
             const link = document.createElement('a');
             link.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + currentExcelB64;
             link.download = 'Resultados_Comparacion.xlsx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         });
 
-        // ─── Reiniciar ────────────────────────────────────────────────────────────
         function resetForm() {
             [1, 2].forEach(n => {
                 document.getElementById(`file${n}`).value = '';
-                document.getElementById(`name${n}`).innerHTML = 'Haz clic para seleccionar o arrastra el archivo aquí';
-
+                document.getElementById(`name${n}`).textContent = 'Haz clic para seleccionar';
                 const dz = document.getElementById(`dz${n}`);
-                if (n === 1) {
-                    dz.classList.remove('border-indigo-500', 'bg-slate-50');
-                    dz.classList.add('border-indigo-300');
-                } else {
-                    dz.classList.remove('border-emerald-500', 'bg-slate-50');
-                    dz.classList.add('border-emerald-300');
-                }
-
-                document.getElementById(`sheetWrap${n}`).classList.remove('visible');
+                dz.classList.remove('ready-indigo', 'ready-emerald');
+                dz.classList.add('file-card');
+                document.getElementById(`selWrap${n}`).classList.remove('visible');
                 document.getElementById(`sheetSelect${n}`).innerHTML = '';
-                document.getElementById(`colWrap${n}`).classList.remove('visible');
                 document.getElementById(`colSelect${n}`).innerHTML = '';
             });
-
-            document.getElementById('resultsArea').classList.add('hidden');
-            document.getElementById('loadingArea').classList.add('hidden');
-            document.getElementById('resultsTableBody').innerHTML = '';
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('loadingArea').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
             document.getElementById('submitBtn').disabled = false;
+            ['st-total1', 'st-total2', 'st-matches', 'st-notfound', 'st-rate', 'st-dupes'].forEach(id => {
+                document.getElementById(id).textContent = '—';
+            });
+            document.getElementById('st-bar').style.width = '0%';
             currentExcelB64 = null;
         }
     </script>
 </body>
+
 </html>
