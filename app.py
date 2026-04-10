@@ -39,11 +39,21 @@ async def read_item(request: Request):
         {"request": request},
     )
 
-@app.post("/headers")
-async def get_headers(file: UploadFile = File(...)):
-    """Devuelve la lista de columnas (encabezados) de un archivo Excel."""
+@app.post("/sheets")
+async def get_sheets(file: UploadFile = File(...)):
+    """Devuelve los nombres de las hojas de un archivo Excel."""
     contents = await file.read()
-    df = pd.read_excel(io.BytesIO(contents), nrows=0)  # solo encabezados
+    xl = pd.ExcelFile(io.BytesIO(contents))
+    return {"sheets": xl.sheet_names}
+
+@app.post("/headers")
+async def get_headers(file: UploadFile = File(...), sheet_name: str = Form("")):
+    """Devuelve los encabezados de una hoja de un archivo Excel."""
+    contents = await file.read()
+    kwargs = {"nrows": 0}
+    if sheet_name:
+        kwargs["sheet_name"] = sheet_name
+    df = pd.read_excel(io.BytesIO(contents), **kwargs)
     return {"columns": df.columns.tolist()}
 
 @app.post("/compare")
@@ -52,13 +62,18 @@ async def compare_files(
     file2: UploadFile = File(...),
     col1_name: str = Form(""),
     col2_name: str = Form(""),
+    sheet1_name: str = Form(""),
+    sheet2_name: str = Form(""),
 ):
-    # 1. Leer ambos archivos Excel en memoria
+    # 1. Leer ambos archivos Excel en memoria, respetando la hoja elegida
     contents1 = await file1.read()
     contents2 = await file2.read()
 
-    df1 = pd.read_excel(io.BytesIO(contents1))
-    df2 = pd.read_excel(io.BytesIO(contents2))
+    read_kw1 = {"sheet_name": sheet1_name} if sheet1_name else {}
+    read_kw2 = {"sheet_name": sheet2_name} if sheet2_name else {}
+
+    df1 = pd.read_excel(io.BytesIO(contents1), **read_kw1)
+    df2 = pd.read_excel(io.BytesIO(contents2), **read_kw2)
 
     # 2. Usar la columna elegida por el usuario (o la primera si no viene)
     col1 = col1_name if col1_name and col1_name in df1.columns else df1.columns[0]

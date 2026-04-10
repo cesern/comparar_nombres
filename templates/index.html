@@ -5,20 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparador de Nombres Excel</title>
-    <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="/static/styles.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .col-select-wrap {
-            display: none;
-        }
+        .step-panel { display: none; }
+        .step-panel.visible { display: block; }
 
-        .col-select-wrap.visible {
-            display: block;
-        }
-
-        .col-select {
+        .panel-select {
             width: 100%;
             padding: 0.5rem 0.75rem;
             border-radius: 0.5rem;
@@ -27,355 +21,154 @@
             font-size: 0.875rem;
             color: #312e81;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            background-size: 1.1em;
+            padding-right: 2rem;
         }
+        .panel-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px #e0e7ff; }
 
-        .col-select:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px #e0e7ff;
-        }
-
-        .col-select.emerald {
+        .panel-select.emerald {
             border-color: #6ee7b7;
             color: #064e3b;
-            background: #f0fdf4;
+            background-color: #f0fdf4;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2310b981' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            background-size: 1.1em;
+            padding-right: 2rem;
         }
+        .panel-select.emerald:focus { border-color: #10b981; box-shadow: 0 0 0 3px #d1fae5; }
 
-        .col-select.emerald:focus {
-            border-color: #10b981;
-            box-shadow: 0 0 0 3px #d1fae5;
-        }
-
-        /* ─── INFO MODAL ─────────────────────────────────── */
-        #infoModal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            animation: fadeInOverlay 0.2s ease;
-        }
-
-        #infoModal.open {
-            display: flex;
-        }
-
-        @keyframes fadeInOverlay {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        #infoModalBox {
-            background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 60px -10px rgba(99, 102, 241, 0.25), 0 10px 30px -5px rgba(0, 0, 0, 0.15);
-            max-width: 680px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            border: 1px solid rgba(199, 210, 254, 0.5);
-        }
-
-        @keyframes slideUpModal {
-            from {
-                transform: translateY(40px) scale(0.97);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
-        }
-
-        .info-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            padding: 2rem 2rem 1.5rem;
-            border-radius: 1.5rem 1.5rem 0 0;
-            position: relative;
-        }
-
-        .info-close-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            font-size: 1rem;
-        }
-
-        .info-close-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        .info-body {
-            padding: 1.75rem 2rem 2rem;
-        }
-
-        .info-section {
-            background: #f8faff;
-            border: 1px solid #e0e7ff;
-            border-radius: 1rem;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-section-title {
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 0.5rem;
+        .step-label {
             display: flex;
             align-items: center;
             gap: 0.4rem;
-        }
-
-        .info-section p,
-        .info-section li {
-            font-size: 0.875rem;
-            color: #475569;
-            line-height: 1.6;
-        }
-
-        .info-section ul {
-            padding-left: 1.1rem;
-            margin-top: 0.35rem;
-        }
-
-        .sheet-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.7rem;
-            border-radius: 9999px;
-            margin-bottom: 0.4rem;
-        }
-
-        .threshold-bar-wrap {
-            margin-top: 0.6rem;
-            background: #e0e7ff;
-            border-radius: 9999px;
-            height: 10px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .threshold-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #10b981 80%);
-        }
-
-        .threshold-marker {
-            position: absolute;
-            top: -4px;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 18px;
-            background: #4f46e5;
-            border-radius: 2px;
-        }
-
-        /* ─── STATS DASHBOARD ───────────────────────────────── */
-        .stat-card {
-            background: #fff;
-            border-radius: 1.25rem;
-            padding: 1.4rem 1.5rem;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 12px 0 rgba(99, 102, 241, 0.07);
-            display: flex;
-            align-items: center;
-            gap: 1.1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px 0 rgba(99, 102, 241, 0.13);
-        }
-
-        .stat-icon {
-            width: 3rem;
-            height: 3rem;
-            border-radius: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            flex-shrink: 0;
-        }
-
-        .stat-label {
             font-size: 0.7rem;
             font-weight: 700;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
-            letter-spacing: 0.07em;
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.35rem;
         }
+        .step-label.indigo { color: #4338ca; }
+        .step-label.emerald { color: #065f46; }
 
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 800;
-            line-height: 1;
+        .loading-spinner {
+            display: inline-block;
+            width: 13px; height: 13px;
+            border: 2px solid #c7d2fe;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 4px;
         }
-
-        /* Circular progress */
-        .stat-ring-wrap {
-            background: #fff;
-            border-radius: 1.25rem;
-            padding: 1.4rem 1.5rem;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 12px 0 rgba(99, 102, 241, 0.07);
-            display: flex;
-            align-items: center;
-            gap: 1.2rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+        .loading-spinner.emerald {
+            border-color: #6ee7b7;
+            border-top-color: #10b981;
         }
-
-        .stat-ring-wrap:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px 0 rgba(99, 102, 241, 0.13);
-        }
-
-        .ring-svg {
-            transform: rotate(-90deg);
-        }
-
-        .ring-bg {
-            fill: none;
-            stroke: #e0e7ff;
-            stroke-width: 7;
-        }
-
-        .ring-fill {
-            fill: none;
-            stroke-width: 7;
-            stroke-linecap: round;
-            stroke: url(#ringGradient);
-            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .ring-text-group {
-            text-anchor: middle;
-            dominant-baseline: middle;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
 <body class="bg-slate-50 min-h-screen font-sans text-gray-800">
     <div class="max-w-6xl mx-auto px-4 py-12">
-        <header class="mb-12 text-center relative">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-3 tracking-tight">Comparador de Nombres
-            </h1>
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-900 mb-3 tracking-tight">Comparador de Nombres</h1>
             <p class="text-lg text-slate-600 max-w-2xl mx-auto">Detecta coincidencias entre dos archivos Excel usando
                 Fuzzy Matching avanzado y descarga un reporte completo al instante.</p>
-            <button id="infoBtn" onclick="openInfoModal()"
-                class="mt-5 inline-flex items-center gap-2 bg-white hover:bg-indigo-50 border border-indigo-200 hover:border-indigo-400 text-indigo-700 font-semibold py-2 px-5 rounded-full shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 text-sm">
-                <i class="fas fa-circle-info text-indigo-500"></i>
-                ¿Cómo funciona?
-            </button>
         </header>
 
         <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-10 border border-slate-100">
             <form id="compareForm" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Archivo 1 -->
-                <div>
-                    <div class="border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:bg-indigo-50 hover:border-indigo-500 transition-all cursor-pointer group"
+
+                <!-- ══════════════════ ARCHIVO 1 ══════════════════ -->
+                <div class="flex flex-col gap-3">
+                    <!-- Dropzone -->
+                    <div id="dz1"
+                        class="border-2 border-dashed border-indigo-300 rounded-xl p-8 text-center hover:bg-indigo-50 hover:border-indigo-500 transition-all cursor-pointer group"
                         onclick="document.getElementById('file1').click()">
                         <input type="file" id="file1" name="file1" accept=".xlsx,.xls" class="hidden" required
-                            onchange="handleFileChange('file1', 'name1', 'colWrap1', 'colSelect1', 'border-indigo-300', 'border-indigo-500', false)">
-                        <div
-                            class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            onchange="onFileSelected(1)">
+                        <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <i class="fas fa-file-excel text-2xl"></i>
                         </div>
                         <h3 class="text-lg font-bold text-slate-700">Archivo 1 (Lista Principal)</h3>
-                        <p id="name1" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o
-                            arrastra
-                            el archivo aquí</p>
+                        <p id="name1" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o arrastra el archivo aquí</p>
                     </div>
-                    <!-- Selector columna archivo 1 -->
-                    <div id="colWrap1" class="col-select-wrap mt-3 px-1">
-                        <label class="block text-xs font-bold text-indigo-700 mb-1 uppercase tracking-wide">
-                            <i class="fas fa-columns mr-1"></i> Columna a comparar
-                        </label>
-                        <select id="colSelect1" name="col1_name" class="col-select"></select>
+
+                    <!-- Selector hoja 1 -->
+                    <div id="sheetWrap1" class="step-panel bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                        <div class="step-label indigo"><i class="fas fa-layer-group"></i> Hoja de trabajo</div>
+                        <select id="sheetSelect1" class="panel-select"
+                            onchange="onSheetSelected(1)">
+                        </select>
+                    </div>
+
+                    <!-- Selector columna 1 -->
+                    <div id="colWrap1" class="step-panel bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                        <div class="step-label indigo"><i class="fas fa-columns"></i> Columna a comparar</div>
+                        <select id="colSelect1" name="col1_name" class="panel-select"></select>
                     </div>
                 </div>
 
-                <!-- Archivo 2 -->
-                <div>
-                    <div class="border-2 border-dashed border-emerald-300 rounded-xl p-8 text-center hover:bg-emerald-50 hover:border-emerald-500 transition-all cursor-pointer group"
+                <!-- ══════════════════ ARCHIVO 2 ══════════════════ -->
+                <div class="flex flex-col gap-3">
+                    <!-- Dropzone -->
+                    <div id="dz2"
+                        class="border-2 border-dashed border-emerald-300 rounded-xl p-8 text-center hover:bg-emerald-50 hover:border-emerald-500 transition-all cursor-pointer group"
                         onclick="document.getElementById('file2').click()">
                         <input type="file" id="file2" name="file2" accept=".xlsx,.xls" class="hidden" required
-                            onchange="handleFileChange('file2', 'name2', 'colWrap2', 'colSelect2', 'border-emerald-300', 'border-emerald-500', true)">
-                        <div
-                            class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            onchange="onFileSelected(2)">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                             <i class="fas fa-file-excel text-2xl"></i>
                         </div>
                         <h3 class="text-lg font-bold text-slate-700">Archivo 2 (Lista de Comparación)</h3>
-                        <p id="name2" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o
-                            arrastra
-                            el archivo aquí</p>
+                        <p id="name2" class="text-sm text-slate-500 mt-2 font-medium">Haz clic para seleccionar o arrastra el archivo aquí</p>
                     </div>
-                    <!-- Selector columna archivo 2 -->
-                    <div id="colWrap2" class="col-select-wrap mt-3 px-1">
-                        <label class="block text-xs font-bold text-emerald-700 mb-1 uppercase tracking-wide">
-                            <i class="fas fa-columns mr-1"></i> Columna a comparar
-                        </label>
-                        <select id="colSelect2" name="col2_name" class="col-select emerald"></select>
+
+                    <!-- Selector hoja 2 -->
+                    <div id="sheetWrap2" class="step-panel bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                        <div class="step-label emerald"><i class="fas fa-layer-group"></i> Hoja de trabajo</div>
+                        <select id="sheetSelect2" class="panel-select emerald"
+                            onchange="onSheetSelected(2)">
+                        </select>
+                    </div>
+
+                    <!-- Selector columna 2 -->
+                    <div id="colWrap2" class="step-panel bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                        <div class="step-label emerald"><i class="fas fa-columns"></i> Columna a comparar</div>
+                        <select id="colSelect2" name="col2_name" class="panel-select emerald"></select>
                     </div>
                 </div>
 
+                <!-- Botones -->
                 <div class="col-span-1 md:col-span-2 flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
                     <button type="submit" id="submitBtn"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-bolt"></i>
                         <span>Comparar Archivos Ahora</span>
                     </button>
                     <button type="button" id="resetBtn" onclick="resetForm()"
-                        class="bg-slate-200 hover:bg-rose-100 text-slate-600 hover:text-rose-700 border border-slate-300 hover:border-rose-300 font-bold py-4 px-8 rounded-full shadow transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center space-x-2">
+                        class="bg-slate-200 hover:bg-rose-100 text-slate-600 hover:text-rose-700 border border-slate-300 hover:border-rose-300 font-bold py-4 px-8 rounded-full shadow transition-all transform hover:-translate-y-1 w-full sm:w-auto text-lg flex items-center justify-center gap-2">
                         <i class="fas fa-redo-alt"></i>
                         <span>Reiniciar</span>
                     </button>
                 </div>
             </form>
 
-            <!-- Progress / Loading Area -->
+            <!-- Área de carga -->
             <div id="loadingArea" class="hidden mt-10 p-6 bg-slate-50 rounded-xl border border-slate-200">
                 <div class="mb-3 flex justify-between items-center font-semibold text-indigo-800">
-                    <span class="flex items-center"><i class="fas fa-cog fa-spin mr-2"></i> Procesando
-                        registros...</span>
+                    <span class="flex items-center"><i class="fas fa-cog fa-spin mr-2"></i> Procesando registros...</span>
                     <span class="animate-pulse text-indigo-600">Calculando coincidencias fuzzy...</span>
                 </div>
-                <!-- Barra de progreso indeterminada animada -->
                 <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden relative shadow-inner">
-                    <div
-                        class="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 loading-bar rounded-full">
-                    </div>
+                    <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 loading-bar rounded-full"></div>
                 </div>
             </div>
         </div>
@@ -391,266 +184,138 @@
                     <i class="fas fa-file-download mr-2 text-xl"></i> Exportar a Excel
                 </button>
             </div>
-
-            <!-- ── Tablero de estadísticas ── -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-
-                <!-- Total registros -->
-                <div class="stat-card col-span-2 lg:col-span-1">
-                    <div class="stat-icon bg-indigo-100 text-indigo-600">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label text-indigo-400">Total comparados</div>
-                        <div class="stat-value text-indigo-700" id="statTotal">0</div>
-                    </div>
-                </div>
-
-                <!-- Coincidencias -->
-                <div class="stat-card">
-                    <div class="stat-icon bg-emerald-100 text-emerald-600">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label text-emerald-500">Coincidencias</div>
-                        <div class="stat-value text-emerald-600" id="statMatches">0</div>
-                    </div>
-                </div>
-
-                <!-- No encontrados -->
-                <div class="stat-card">
-                    <div class="stat-icon bg-rose-100 text-rose-500">
-                        <i class="fas fa-times-circle"></i>
-                    </div>
-                    <div>
-                        <div class="stat-label text-rose-400">No encontrados</div>
-                        <div class="stat-value text-rose-500" id="statNotFound">0</div>
-                    </div>
-                </div>
-
-                <!-- % Match global con anillo -->
-                <div class="stat-ring-wrap">
-                    <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
-                        <defs>
-                            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#6366f1" />
-                                <stop offset="100%" stop-color="#10b981" />
-                            </linearGradient>
-                        </defs>
-                        <circle class="ring-bg" cx="36" cy="36" r="28" />
-                        <circle id="ringFill" class="ring-fill" cx="36" cy="36" r="28" stroke-dasharray="175.93"
-                            stroke-dashoffset="175.93" />
-                        <g class="ring-text-group" transform="rotate(90,36,36)">
-                            <text id="ringPct" x="36" y="34" fill="#4f46e5" font-size="12" font-weight="800"
-                                font-family="sans-serif">0%</text>
-                            <text x="36" y="46" fill="#94a3b8" font-size="7" font-family="sans-serif">match</text>
-                        </g>
-                    </svg>
-                    <div>
-                        <div class="stat-label text-violet-400">% Match global</div>
-                        <div class="stat-value text-violet-700" id="statPct">0%</div>
-                    </div>
-                </div>
-
-            </div>
-            <!-- ── Fin tablero ── -->
-
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
                 <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50 sticky top-0 shadow-sm z-10">
                             <tr>
-                                <th scope="col"
-                                    class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    Nombre Archivo 1</th>
-                                <th scope="col"
-                                    class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    Mejor Coincidencia Archivo 2</th>
-                                <th scope="col"
-                                    class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    Similitud</th>
-                                <th scope="col"
-                                    class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    Resultado</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Archivo 1</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Mejor Coincidencia Archivo 2</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Similitud</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Resultado</th>
                             </tr>
                         </thead>
-                        <tbody id="resultsTableBody" class="bg-white divide-y divide-slate-100">
-                            <!-- Inyectado mediante JS -->
-                        </tbody>
+                        <tbody id="resultsTableBody" class="bg-white divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ─── MODAL DE INFORMACIÓN ──────────────────────────────────── -->
-    <div id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle"
-        onclick="handleModalBackdropClick(event)">
-        <div id="infoModalBox">
-            <!-- Header -->
-            <div class="info-header">
-                <button class="info-close-btn" onclick="closeInfoModal()" aria-label="Cerrar">
-                    <i class="fas fa-xmark"></i>
-                </button>
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-12 h-12 rounded-2xl bg-white bg-opacity-20 flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-magnifying-glass-chart text-white text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 id="infoModalTitle" class="text-white font-extrabold text-xl leading-tight">¿Cómo funciona
-                            el Comparador?</h2>
-                        <p class="text-indigo-200 text-sm mt-0.5">Guía completa de funciones y resultados</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Body -->
-            <div class="info-body">
-
-                <!-- ¿Qué hace? -->
-                <div class="info-section">
-                    <div class="info-section-title text-indigo-700">
-                        <i class="fas fa-bolt text-indigo-500"></i> ¿Qué hace la aplicación?
-                    </div>
-                    <p>Toma cada nombre del <strong>Archivo 1 (Lista Principal)</strong> y lo busca dentro del
-                        <strong>Archivo 2 (Lista de Comparación)</strong>. Por cada nombre, determina cuál es su mejor
-                        coincidencia posible y con qué porcentaje de similitud.</p>
-                    <p class="mt-2">Antes de comparar, los nombres se <strong>normalizan automáticamente</strong>: se
-                        convierten a mayúsculas, se eliminan acentos y espacios extra, de modo que <em>"García"</em> y
-                        <em>"Garcia"</em> son equivalentes.</p>
-                </div>
-
-                <!-- Umbral -->
-                <div class="info-section">
-                    <div class="info-section-title text-amber-700">
-                        <i class="fas fa-sliders text-amber-500"></i> Umbral de coincidencia (80%)
-                    </div>
-                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud entre dos nombres es <strong>≥
-                            80%</strong>. Por debajo de ese valor se clasifica como <strong>NO ENCONTRADO</strong>.</p>
-                    <div class="threshold-bar-wrap mt-3">
-                        <div class="threshold-bar-fill" style="width:100%"></div>
-                        <div class="threshold-marker" style="left:80%" title="80% — umbral"></div>
-                    </div>
-                    <div class="flex justify-between text-xs text-slate-400 mt-1 px-0.5">
-                        <span>0%</span>
-                        <span class="text-indigo-600 font-bold">↑ 80% — umbral</span>
-                        <span>100%</span>
-                    </div>
-                    <ul class="mt-2">
-                        <li>🟢 <strong>100%</strong> — Coincidencia exacta (después de normalizar)</li>
-                        <li>🔵 <strong>80 – 99%</strong> — Similitud alta (pequeñas diferencias de escritura)</li>
-                        <li>🔴 <strong>&lt; 80%</strong> — No encontrado</li>
-                    </ul>
-                </div>
-
-                <!-- Hojas del Excel -->
-                <div class="info-section">
-                    <div class="info-section-title text-emerald-700">
-                        <i class="fas fa-file-excel text-emerald-500"></i> Hojas del Excel descargable
-                    </div>
-                    <p class="mb-3">El archivo Excel exportado contiene <strong>3 hojas</strong>:</p>
-
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <span class="sheet-badge bg-emerald-100 text-emerald-800">
-                            <i class="fas fa-check-circle"></i> Coincidencias
-                        </span>
-                        <span class="sheet-badge bg-rose-100 text-rose-800">
-                            <i class="fas fa-times-circle"></i> No encontrados
-                        </span>
-                        <span class="sheet-badge bg-amber-100 text-amber-800">
-                            <i class="fas fa-copy"></i> Duplicados detectados
-                        </span>
-                    </div>
-
-                    <ul>
-                        <li><strong class="text-emerald-700">Coincidencias</strong> — Todos los nombres del Archivo 1
-                            que encontraron pareja en el Archivo 2 con similitud ≥ 80%.</li>
-                        <li class="mt-1"><strong class="text-rose-700">No encontrados</strong> — Nombres del Archivo 1
-                            sin ninguna coincidencia suficiente en el Archivo 2. Son candidatos a revisión manual.</li>
-                        <li class="mt-1"><strong class="text-amber-700">Duplicados detectados</strong> — Nombres que
-                            aparecen más de una vez en el <em>Archivo 2</em> (después de normalizar). Esto puede causar
-                            ambigüedad en la comparación y conviene limpiarlos antes de volver a procesar.</li>
-                    </ul>
-                </div>
-
-                <!-- Columna a comparar -->
-                <div class="info-section">
-                    <div class="info-section-title text-violet-700">
-                        <i class="fas fa-table-columns text-violet-500"></i> Selección de columna
-                    </div>
-                    <p>Al cargar cada archivo, la app lee automáticamente sus encabezados y te permite elegir
-                        <strong>qué columna contiene los nombres</strong> a comparar. Si tu Excel tiene varias columnas
-                        (Nombre, Apellido, CURP, etc.) puedes seleccionar exactamente la que necesitas.</p>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
     <script>
-        // ─── Cargar encabezados del archivo y poblar el SELECT ───────────────────
-        async function handleFileChange(inputId, textId, wrapId, selectId, defaultBorder, highlightBorder, isEmerald) {
-            const input = document.getElementById(inputId);
-            const text = document.getElementById(textId);
-            const container = input.parentElement;
-            const wrap = document.getElementById(wrapId);
-            const select = document.getElementById(selectId);
+        // ─── Estado ──────────────────────────────────────────────────────────────
+        let currentExcelB64 = null;
+
+        // ─── Paso 1: Archivo seleccionado → cargar hojas ─────────────────────────
+        async function onFileSelected(n) {
+            const input     = document.getElementById(`file${n}`);
+            const nameEl    = document.getElementById(`name${n}`);
+            const dz        = document.getElementById(`dz${n}`);
+            const sheetWrap = document.getElementById(`sheetWrap${n}`);
+            const sheetSel  = document.getElementById(`sheetSelect${n}`);
+            const colWrap   = document.getElementById(`colWrap${n}`);
+            const colSel    = document.getElementById(`colSelect${n}`);
+            const isEmerald = n === 2;
 
             if (!input.files.length) return;
-
             const file = input.files[0];
 
-            // Actualizar texto del dropzone
-            text.innerHTML = `<span class="${isEmerald ? 'text-emerald-600' : 'text-indigo-600'} font-bold"><i class="fas fa-check-circle mr-1"></i> ${file.name}</span>`;
-            container.classList.remove(defaultBorder);
-            container.classList.add(highlightBorder, 'bg-slate-50');
+            // Actualizar dropzone
+            const color = isEmerald ? 'text-emerald-600' : 'text-indigo-600';
+            nameEl.innerHTML = `<span class="${color} font-bold"><i class="fas fa-check-circle mr-1"></i>${file.name}</span>`;
+            const [rem, add] = isEmerald
+                ? ['border-emerald-300', 'border-emerald-500']
+                : ['border-indigo-300',  'border-indigo-500'];
+            dz.classList.remove(rem);
+            dz.classList.add(add, 'bg-slate-50');
 
-            // Ocultar select mientras carga
-            wrap.classList.remove('visible');
-            select.innerHTML = '<option>Cargando columnas...</option>';
+            // Resetear pasos siguientes
+            colWrap.classList.remove('visible');
+            colSel.innerHTML = '';
+
+            // Mostrar spinner en selector hoja
+            sheetSel.innerHTML = `<option><span class="loading-spinner${isEmerald ? ' emerald' : ''}"></span> Cargando hojas...</option>`;
+            sheetWrap.classList.add('visible');
 
             try {
                 const fd = new FormData();
                 fd.append('file', file);
-                const res = await fetch('/headers', { method: 'POST', body: fd });
-                if (!res.ok) throw new Error('No se pudieron leer los encabezados');
+                const res = await fetch('/sheets', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error();
                 const data = await res.json();
 
-                select.innerHTML = '';
+                sheetSel.innerHTML = '';
+                data.sheets.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sheetSel.appendChild(opt);
+                });
+
+                // Si solo hay una hoja, cargar columnas directamente
+                await loadColumns(n);
+
+            } catch {
+                sheetSel.innerHTML = '<option value="">Error al leer las hojas</option>';
+            }
+        }
+
+        // ─── Paso 2: Hoja seleccionada → cargar columnas ─────────────────────────
+        async function onSheetSelected(n) {
+            await loadColumns(n);
+        }
+
+        async function loadColumns(n) {
+            const fileInput = document.getElementById(`file${n}`);
+            const sheetSel  = document.getElementById(`sheetSelect${n}`);
+            const colWrap   = document.getElementById(`colWrap${n}`);
+            const colSel    = document.getElementById(`colSelect${n}`);
+            const isEmerald = n === 2;
+
+            if (!fileInput.files.length) return;
+
+            const sheetName = sheetSel.value;
+
+            colSel.innerHTML = `<option>Cargando columnas...</option>`;
+            colWrap.classList.add('visible');
+
+            try {
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                if (sheetName) fd.append('sheet_name', sheetName);
+
+                const res = await fetch('/headers', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                colSel.innerHTML = '';
                 data.columns.forEach((col, idx) => {
                     const opt = document.createElement('option');
                     opt.value = col;
                     opt.textContent = `${String.fromCharCode(65 + idx)}  —  ${col}`;
-                    select.appendChild(opt);
+                    colSel.appendChild(opt);
                 });
-                wrap.classList.add('visible');
-            } catch (err) {
-                select.innerHTML = '<option value="">Error al leer encabezados</option>';
-                wrap.classList.add('visible');
-                console.error(err);
+            } catch {
+                colSel.innerHTML = '<option value="">Error al leer columnas</option>';
             }
         }
 
-        let currentExcelB64 = null;
-
+        // ─── Paso 3: Comparar ─────────────────────────────────────────────────────
         document.getElementById('compareForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const file1 = document.getElementById('file1').files[0];
             const file2 = document.getElementById('file2').files[0];
-
             if (!file1 || !file2) {
                 alert("Por favor selecciona ambos archivos para continuar.");
                 return;
             }
 
-            const submitBtn = document.getElementById('submitBtn');
+            const submitBtn  = document.getElementById('submitBtn');
             const loadingArea = document.getElementById('loadingArea');
             const resultsArea = document.getElementById('resultsArea');
-            const tableBody = document.getElementById('resultsTableBody');
+            const tableBody   = document.getElementById('resultsTableBody');
 
-            // Estado de carga
             submitBtn.disabled = true;
             loadingArea.classList.remove('hidden');
             resultsArea.classList.add('hidden');
@@ -659,42 +324,27 @@
             const formData = new FormData();
             formData.append('file1', file1);
             formData.append('file2', file2);
-
-            // Columnas elegidas por el usuario
-            const col1 = document.getElementById('colSelect1').value;
-            const col2 = document.getElementById('colSelect2').value;
-            formData.append('col1_name', col1);
-            formData.append('col2_name', col2);
+            formData.append('col1_name',   document.getElementById('colSelect1').value   || '');
+            formData.append('col2_name',   document.getElementById('colSelect2').value   || '');
+            formData.append('sheet1_name', document.getElementById('sheetSelect1').value || '');
+            formData.append('sheet2_name', document.getElementById('sheetSelect2').value || '');
 
             try {
-                const response = await fetch('/compare', {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/compare', { method: 'POST', body: formData });
                 if (!response.ok) throw new Error("Error interno al procesar los archivos");
-
                 const data = await response.json();
 
-                // Limitar resultados renderizados a los primeros 2000 en el frontend por rendimiento en el DOM
                 const resultsToRender = data.results.slice(0, 2000);
-
-                // Creación de tabla optimizada mediante fragmentos
                 const fragment = document.createDocumentFragment();
 
                 resultsToRender.forEach(row => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors";
-
-                    const isMatch = row["Resultado"] === "COINCIDENCIA";
+                    const isMatch    = row["Resultado"] === "COINCIDENCIA";
                     const badgeClass = isMatch ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-rose-100 text-rose-800 border-rose-200";
-                    const iconClass = isMatch ? "fa-check-circle text-emerald-500" : "fa-times-circle text-rose-500";
-
-                    // Colores de similitud
-                    let scoreColor = "text-slate-500";
-                    if (isMatch) {
-                        scoreColor = row["Similitud (%)"] === 100 ? "text-emerald-600 font-extrabold" : "text-indigo-600 font-bold";
-                    }
+                    const iconClass  = isMatch ? "fa-check-circle text-emerald-500" : "fa-times-circle text-rose-500";
+                    let scoreColor   = "text-slate-500";
+                    if (isMatch) scoreColor = row["Similitud (%)"] === 100 ? "text-emerald-600 font-extrabold" : "text-indigo-600 font-bold";
 
                     tr.innerHTML = `
                         <td class="px-6 py-4 text-sm text-slate-900 font-medium">${row["Nombre Archivo 1"]}</td>
@@ -704,45 +354,29 @@
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${badgeClass} shadow-sm items-center">
                                 <i class="fas ${iconClass} mr-1.5"></i> ${row["Resultado"]}
                             </span>
-                        </td>
-                    `;
+                        </td>`;
                     fragment.appendChild(tr);
                 });
-
                 tableBody.appendChild(fragment);
 
                 if (data.results.length > 2000) {
                     const msgRow = document.createElement('tr');
-                    msgRow.innerHTML = `<td colspan="4" class="px-6 py-4 text-center text-sm text-slate-500 italic">Se muestran 2000 de ${data.results.length} resultados. Descarga el Excel para ver todos.</td>`;
+                    msgRow.innerHTML = `<td colspan="4" class="px-6 py-4 text-center text-sm text-slate-500 italic">Se muestran 2,000 de ${data.results.length} resultados. Descarga el Excel para ver todos.</td>`;
                     tableBody.appendChild(msgRow);
                 }
 
                 currentExcelB64 = data.excel_b64;
-
-                // ── Calcular y animar el tablero de estadísticas ──
-                const total = data.results.length;
-                const matches = data.results.filter(r => r["Resultado"] === "COINCIDENCIA").length;
-                const notFound = total - matches;
-                const pct = total > 0 ? Math.round((matches / total) * 100) : 0;
-
-                animateCounter('statTotal', total);
-                animateCounter('statMatches', matches);
-                animateCounter('statNotFound', notFound);
-                animatePct('statPct', pct);
-                animateRing(pct);
-
-                // Mostrar resultados con animación
                 resultsArea.classList.remove('hidden');
 
-            } catch (error) {
-                alert("Hubo un error calculando las coincidencias: " + error.message);
+            } catch (err) {
+                alert("Hubo un error calculando las coincidencias: " + err.message);
             } finally {
                 submitBtn.disabled = false;
                 loadingArea.classList.add('hidden');
             }
         });
 
-        // Descarga de Excel
+        // ─── Descarga Excel ───────────────────────────────────────────────────────
         document.getElementById('downloadBtn').addEventListener('click', () => {
             if (!currentExcelB64) return;
             const link = document.createElement('a');
@@ -753,124 +387,33 @@
             document.body.removeChild(link);
         });
 
-        // ─── Reiniciar formulario ────────────────────────────────────────────────
+        // ─── Reiniciar ────────────────────────────────────────────────────────────
         function resetForm() {
-            ['file1', 'file2'].forEach(id => {
-                document.getElementById(id).value = '';
+            [1, 2].forEach(n => {
+                document.getElementById(`file${n}`).value = '';
+                document.getElementById(`name${n}`).innerHTML = 'Haz clic para seleccionar o arrastra el archivo aquí';
+
+                const dz = document.getElementById(`dz${n}`);
+                if (n === 1) {
+                    dz.classList.remove('border-indigo-500', 'bg-slate-50');
+                    dz.classList.add('border-indigo-300');
+                } else {
+                    dz.classList.remove('border-emerald-500', 'bg-slate-50');
+                    dz.classList.add('border-emerald-300');
+                }
+
+                document.getElementById(`sheetWrap${n}`).classList.remove('visible');
+                document.getElementById(`sheetSelect${n}`).innerHTML = '';
+                document.getElementById(`colWrap${n}`).classList.remove('visible');
+                document.getElementById(`colSelect${n}`).innerHTML = '';
             });
 
-            // Restaurar textos de los dropzones
-            document.getElementById('name1').innerHTML = 'Haz clic para seleccionar o arrastra el archivo aquí';
-            document.getElementById('name2').innerHTML = 'Haz clic para seleccionar o arrastra el archivo aquí';
-
-            // Restaurar bordes
-            const dz1 = document.getElementById('file1').parentElement;
-            const dz2 = document.getElementById('file2').parentElement;
-            dz1.classList.remove('border-indigo-500', 'bg-slate-50');
-            dz1.classList.add('border-indigo-300');
-            dz2.classList.remove('border-emerald-500', 'bg-slate-50');
-            dz2.classList.add('border-emerald-300');
-
-            // Ocultar selectores de columna
-            document.getElementById('colWrap1').classList.remove('visible');
-            document.getElementById('colWrap2').classList.remove('visible');
-            document.getElementById('colSelect1').innerHTML = '';
-            document.getElementById('colSelect2').innerHTML = '';
-
-            // Ocultar resultados y loading
             document.getElementById('resultsArea').classList.add('hidden');
             document.getElementById('loadingArea').classList.add('hidden');
             document.getElementById('resultsTableBody').innerHTML = '';
-
-            currentExcelB64 = null;
             document.getElementById('submitBtn').disabled = false;
+            currentExcelB64 = null;
         }
-
-        // ─── Animaciones del tablero de estadísticas ─────────────────────────────
-        function animateCounter(id, target, suffix = '') {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const duration = 900;
-            const start = performance.now();
-            const startVal = 0;
-            function step(now) {
-                const elapsed = now - start;
-                const progress = Math.min(elapsed / duration, 1);
-                // Ease out cubic
-                const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = Math.round(startVal + eased * (target - startVal)) + suffix;
-                if (progress < 1) requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-        }
-
-        function animatePct(id, target) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const duration = 900;
-            const start = performance.now();
-            function step(now) {
-                const elapsed = now - start;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const current = Math.round(eased * target);
-                el.textContent = current + '%';
-                if (progress < 1) requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-        }
-
-        function animateRing(pct) {
-            const circumference = 175.93;
-            const ringFill = document.getElementById('ringFill');
-            const ringText = document.getElementById('ringPct');
-            if (!ringFill || !ringText) return;
-            // Reset before animating
-            ringFill.style.transition = 'none';
-            ringFill.style.strokeDashoffset = circumference;
-            ringText.textContent = '0%';
-            // Trigger reflow then animate
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    ringFill.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
-                    const offset = circumference - (pct / 100) * circumference;
-                    ringFill.style.strokeDashoffset = offset;
-                    // Animate text inside ring in sync
-                    const duration = 900;
-                    const start = performance.now();
-                    function step(now) {
-                        const elapsed = now - start;
-                        const progress = Math.min(elapsed / duration, 1);
-                        const eased = 1 - Math.pow(1 - progress, 3);
-                        ringText.textContent = Math.round(eased * pct) + '%';
-                        if (progress < 1) requestAnimationFrame(step);
-                    }
-                    requestAnimationFrame(step);
-                });
-            });
-        }
-
-        // ─── Modal de Información ────────────────────────────────────────────────
-        function openInfoModal() {
-            const modal = document.getElementById('infoModal');
-            modal.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeInfoModal() {
-            const modal = document.getElementById('infoModal');
-            modal.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        function handleModalBackdropClick(e) {
-            if (e.target === document.getElementById('infoModal')) closeInfoModal();
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeInfoModal();
-        });
     </script>
 </body>
-
 </html>
