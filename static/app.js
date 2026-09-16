@@ -70,6 +70,8 @@
             body.innerHTML = '';
             page.forEach(r => {
                 const tr = document.createElement('tr');
+                const ok = r['Resultado'] === 'COINCIDENCIA';
+                tr.className = ok ? 'row-ok' : 'row-miss';
                 const td1 = document.createElement('td'); td1.textContent = r['Nombre Archivo 1'];
                 const td2 = document.createElement('td'); td2.textContent = r['Mejor Coincidencia Archivo 2'];
                 const td3 = document.createElement('td');
@@ -79,7 +81,6 @@
                 td3.appendChild(pill);
                 const td4 = document.createElement('td');
                 const badge = document.createElement('span');
-                const ok = r['Resultado'] === 'COINCIDENCIA';
                 badge.className = ok ? 'res-badge res-ok' : 'res-badge res-miss';
                 badge.textContent = r['Resultado'];
                 td4.appendChild(badge);
@@ -123,6 +124,7 @@
             detailPage = 1;
             document.getElementById('detailSearch').value = '';
             document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('dupWarn').style.display = 'none';
             ['c-all', 'c-match', 'c-miss'].forEach(id => { document.getElementById(id).textContent = ''; });
             document.getElementById('pagerInfo').textContent = '';
             document.querySelectorAll('.tab-btn').forEach(b =>
@@ -249,6 +251,20 @@
                 document.getElementById('st-bar').style.width = '0%';
                 setDetailData(data.results);
 
+                const dupWarn = document.getElementById('dupWarn');
+                const d1 = s.duplicates_file1 || 0;
+                const d2 = s.duplicates_file2 || 0;
+                if (d1 > 0 || d2 > 0) {
+                    const parts = [];
+                    if (d2 > 0) parts.push(`${d2} en Archivo 2`);
+                    if (d1 > 0) parts.push(`${d1} en Archivo 1`);
+                    document.getElementById('dupWarnText').textContent =
+                        `Duplicados detectados (${parts.join(' · ')}). Revisa la hoja correspondiente en el Excel.`;
+                    dupWarn.style.display = 'flex';
+                } else {
+                    dupWarn.style.display = 'none';
+                }
+
                 resultsArea.style.display = 'flex';
                 setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
 
@@ -277,7 +293,7 @@
         function resetForm() {
             [1, 2].forEach(n => {
                 document.getElementById(`file${n}`).value = '';
-                document.getElementById(`name${n}`).textContent = 'Haz clic para seleccionar';
+                document.getElementById(`name${n}`).textContent = 'Haz clic o arrastra el archivo';
                 const dz = document.getElementById(`dz${n}`);
                 dz.classList.remove('ready-indigo', 'ready-emerald');
                 dz.classList.add('file-card');
@@ -301,4 +317,24 @@
         }
 
         updateSubmitState();
+
+        // ── Drag & drop real en las tarjetas de archivo ──
+        [1, 2].forEach(n => {
+            const dz = document.getElementById(`dz${n}`);
+            const input = document.getElementById(`file${n}`);
+            ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+                e.preventDefault();
+                dz.classList.add('dragover');
+            }));
+            ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+                e.preventDefault();
+                dz.classList.remove('dragover');
+            }));
+            dz.addEventListener('drop', e => {
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    onFileSelected(n);
+                }
+            });
+        });
     

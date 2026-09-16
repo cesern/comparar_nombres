@@ -36,24 +36,26 @@
             <form id="compareForm" class="dz-group">
 
                 <!-- Archivo 1 -->
-                <div class="file-card" id="dz1" onclick="document.getElementById('file1').click()">
+                <div class="file-card" id="dz1" role="button" tabindex="0" aria-label="Seleccionar Archivo 1, lista principal"
+                    onclick="document.getElementById('file1').click()"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file1').click()}">
                     <input type="file" id="file1" name="file1" accept=".xlsx,.xls" style="display:none" required
                         onchange="onFileSelected(1)">
                     <div class="file-icon indigo"><i class="fas fa-file-excel"></i></div>
                     <div class="file-info">
                         <div class="file-title">Archivo 1 · Lista Principal</div>
-                        <div class="file-name" id="name1">Haz clic para seleccionar</div>
+                        <div class="file-name" id="name1">Haz clic o arrastra el archivo</div>
                     </div>
                     <i class="fas fa-chevron-right file-chevron"></i>
                 </div>
 
                 <div id="selWrap1" class="step-panel select-group">
                     <div class="select-wrap">
-                        <div class="select-label lbl-indigo"><i class="fas fa-layer-group"></i> Hoja</div>
+                        <label class="select-label lbl-indigo" for="sheetSelect1"><i class="fas fa-layer-group"></i> Hoja</label>
                         <select id="sheetSelect1" class="panel-select" onchange="onSheetSelected(1)"></select>
                     </div>
                     <div class="select-wrap">
-                        <div class="select-label lbl-indigo"><i class="fas fa-columns"></i> Columna</div>
+                        <label class="select-label lbl-indigo" for="colSelect1"><i class="fas fa-columns"></i> Columna</label>
                         <select id="colSelect1" name="col1_name" class="panel-select"></select>
                     </div>
                 </div>
@@ -61,24 +63,26 @@
                 <div class="divider"></div>
 
                 <!-- Archivo 2 -->
-                <div class="file-card emerald-card" id="dz2" onclick="document.getElementById('file2').click()">
+                <div class="file-card emerald-card" id="dz2" role="button" tabindex="0" aria-label="Seleccionar Archivo 2, lista de comparación"
+                    onclick="document.getElementById('file2').click()"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file2').click()}">
                     <input type="file" id="file2" name="file2" accept=".xlsx,.xls" style="display:none" required
                         onchange="onFileSelected(2)">
                     <div class="file-icon emerald"><i class="fas fa-file-excel"></i></div>
                     <div class="file-info">
                         <div class="file-title em">Archivo 2 · Lista de Comparación</div>
-                        <div class="file-name" id="name2">Haz clic para seleccionar</div>
+                        <div class="file-name" id="name2">Haz clic o arrastra el archivo</div>
                     </div>
                     <i class="fas fa-chevron-right file-chevron"></i>
                 </div>
 
                 <div id="selWrap2" class="step-panel select-group">
                     <div class="select-wrap">
-                        <div class="select-label lbl-emerald"><i class="fas fa-layer-group"></i> Hoja</div>
+                        <label class="select-label lbl-emerald" for="sheetSelect2"><i class="fas fa-layer-group"></i> Hoja</label>
                         <select id="sheetSelect2" class="panel-select em" onchange="onSheetSelected(2)"></select>
                     </div>
                     <div class="select-wrap">
-                        <div class="select-label lbl-emerald"><i class="fas fa-columns"></i> Columna</div>
+                        <label class="select-label lbl-emerald" for="colSelect2"><i class="fas fa-columns"></i> Columna</label>
                         <select id="colSelect2" name="col2_name" class="panel-select em"></select>
                     </div>
                 </div>
@@ -91,6 +95,7 @@
                         <i class="fas fa-sliders"></i> Umbral&nbsp;<span id="thresholdVal" style="color:var(--indigo-dark)">85</span>
                     </div>
                     <input type="range" id="threshold" name="threshold" min="0" max="100" value="85" step="1"
+                        aria-label="Umbral de similitud para considerar coincidencia"
                         style="width:100%;accent-color:var(--indigo);cursor:pointer"
                         oninput="document.getElementById('thresholdVal').textContent = this.value; document.getElementById('modalThreshold').textContent = this.value">
                 </div>
@@ -125,7 +130,7 @@
             <div class="empty-state" id="emptyState">
                 <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
                 <h2>Sin resultados aún</h2>
-                <p>Selecciona dos archivos Excel, elige hoja y columna, y presiona <strong
+                <p>Arrastra dos archivos Excel o haz clic para seleccionarlos, elige hoja y columna, y presiona <strong
                         style="color:var(--indigo)">Comparar</strong>.</p>
             </div>
 
@@ -135,6 +140,11 @@
                     <button class="btn-download" id="downloadBtn">
                         <i class="fas fa-file-download"></i> Exportar Excel
                     </button>
+                </div>
+
+                <div class="dup-warn" id="dupWarn" style="display:none">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span id="dupWarnText"></span>
                 </div>
 
                 <div class="stats-grid">
@@ -205,10 +215,10 @@
                         <table class="results-table">
                             <thead>
                                 <tr>
-                                    <th>Nombre Archivo 1</th>
-                                    <th>Mejor Coincidencia</th>
-                                    <th>Similitud</th>
-                                    <th>Resultado</th>
+                                    <th scope="col">Nombre Archivo 1</th>
+                                    <th scope="col">Mejor Coincidencia</th>
+                                    <th scope="col">Similitud</th>
+                                    <th scope="col">Resultado</th>
                                 </tr>
                             </thead>
                             <tbody id="resultsBody"></tbody>
