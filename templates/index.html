@@ -472,9 +472,12 @@
         .dashboard {
             width: 100%;
             max-width: 800px;
+            max-height: 100%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
+            padding-bottom: 0.5rem;
         }
 
         .dash-header {
@@ -730,6 +733,202 @@
             to {
                 transform: rotate(360deg);
             }
+        }
+
+        /* ── Tabla de detalle ── */
+        .results-detail {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            min-height: 0;
+        }
+
+        .detail-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #f8faff;
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 0.32rem 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .tab-btn:hover {
+            border-color: #c7d2fe;
+            color: var(--indigo);
+        }
+
+        .tab-btn.active {
+            background: var(--indigo);
+            border-color: var(--indigo);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+        }
+
+        .detail-search {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #f8faff;
+            border: 1.5px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.32rem 0.7rem;
+            min-width: 180px;
+        }
+
+        .detail-search i {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .detail-search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.78rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            max-height: 300px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+        }
+
+        .results-table thead th {
+            position: sticky;
+            top: 0;
+            background: var(--indigo-light);
+            color: var(--indigo-dark);
+            font-size: 0.64rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+            padding: 0.5rem 0.7rem;
+            white-space: nowrap;
+            z-index: 1;
+        }
+
+        .results-table tbody td {
+            padding: 0.45rem 0.7rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .results-table tbody tr:hover td {
+            background: #fafbff;
+        }
+
+        .score-pill {
+            display: inline-block;
+            min-width: 3rem;
+            text-align: center;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.72rem;
+        }
+
+        .score-hi {
+            background: var(--emerald-light);
+            color: var(--emerald-dark);
+        }
+
+        .score-mid {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .score-lo {
+            background: #fff1f2;
+            color: var(--rose);
+        }
+
+        .res-badge {
+            display: inline-block;
+            font-size: 0.64rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 999px;
+            padding: 0.12rem 0.55rem;
+            white-space: nowrap;
+        }
+
+        .res-ok {
+            background: var(--emerald-light);
+            color: var(--emerald-dark);
+            border: 1px solid #a7f3d0;
+        }
+
+        .res-miss {
+            background: #fff1f2;
+            color: var(--rose);
+            border: 1px solid #fecdd3;
+        }
+
+        .pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .pager-info {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+
+        .pager-btns {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .pager-btn {
+            background: #f8faff;
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 0.5rem;
+            padding: 0.3rem 0.7rem;
+            font-size: 0.76rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .pager-btn:hover:not(:disabled) {
+            border-color: var(--indigo-mid);
+            color: var(--indigo);
+        }
+
+        .pager-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
         /* ══ MODAL ══ */
@@ -1179,6 +1378,48 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="results-detail">
+                    <div class="detail-toolbar">
+                        <button type="button" class="tab-btn active" data-filter="all" onclick="setFilter('all')">
+                            Todos <span id="c-all"></span>
+                        </button>
+                        <button type="button" class="tab-btn" data-filter="match" onclick="setFilter('match')">
+                            Coincidencias <span id="c-match"></span>
+                        </button>
+                        <button type="button" class="tab-btn" data-filter="miss" onclick="setFilter('miss')">
+                            No encontrados <span id="c-miss"></span>
+                        </button>
+                        <label class="detail-search">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="detailSearch" placeholder="Buscar nombre…" oninput="onSearch(this.value)">
+                        </label>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Archivo 1</th>
+                                    <th>Mejor Coincidencia</th>
+                                    <th>Similitud</th>
+                                    <th>Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="pager">
+                        <span class="pager-info" id="pagerInfo"></span>
+                        <div class="pager-btns">
+                            <button type="button" class="pager-btn" id="prevBtn" onclick="changePage(-1)">
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </button>
+                            <button type="button" class="pager-btn" id="nextBtn" onclick="changePage(1)">
+                                Siguiente <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </main>
@@ -1314,6 +1555,112 @@
     <script>
         let currentExcelB64 = null;
 
+        // ── Tabla de detalle: estado y paginación (cliente) ──
+        const PAGE_SIZE = 50;
+        let detailResults = [];
+        let detailFilter = 'all';
+        let detailQuery = '';
+        let detailPage = 1;
+
+        function numberToExcelCol(idx) {
+            // 0->A ... 25->Z, 26->AA, 27->AB ...
+            let s = '';
+            let n = idx + 1;
+            while (n > 0) {
+                const m = (n - 1) % 26;
+                s = String.fromCharCode(65 + m) + s;
+                n = Math.floor((n - 1) / 26);
+            }
+            return s;
+        }
+
+        function filteredResults() {
+            const q = detailQuery.trim().toLowerCase();
+            return detailResults.filter(r => {
+                if (detailFilter === 'match' && r['Resultado'] !== 'COINCIDENCIA') return false;
+                if (detailFilter === 'miss' && r['Resultado'] === 'COINCIDENCIA') return false;
+                if (q && !(String(r['Nombre Archivo 1']).toLowerCase().includes(q) ||
+                           String(r['Mejor Coincidencia Archivo 2']).toLowerCase().includes(q))) return false;
+                return true;
+            });
+        }
+
+        function scoreClass(v) {
+            if (v >= 95) return 'score-pill score-hi';
+            if (v >= 80) return 'score-pill score-mid';
+            return 'score-pill score-lo';
+        }
+
+        function renderDetail() {
+            const body = document.getElementById('resultsBody');
+            const rows = filteredResults();
+            const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+            if (detailPage > totalPages) detailPage = totalPages;
+            const start = (detailPage - 1) * PAGE_SIZE;
+            const page = rows.slice(start, start + PAGE_SIZE);
+
+            body.innerHTML = '';
+            page.forEach(r => {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td'); td1.textContent = r['Nombre Archivo 1'];
+                const td2 = document.createElement('td'); td2.textContent = r['Mejor Coincidencia Archivo 2'];
+                const td3 = document.createElement('td');
+                const pill = document.createElement('span');
+                pill.className = scoreClass(Number(r['Similitud (%)']));
+                pill.textContent = r['Similitud (%)'] + '%';
+                td3.appendChild(pill);
+                const td4 = document.createElement('td');
+                const badge = document.createElement('span');
+                const ok = r['Resultado'] === 'COINCIDENCIA';
+                badge.className = ok ? 'res-badge res-ok' : 'res-badge res-miss';
+                badge.textContent = r['Resultado'];
+                td4.appendChild(badge);
+                tr.append(td1, td2, td3, td4);
+                body.appendChild(tr);
+            });
+
+            document.getElementById('c-all').textContent = `(${detailResults.length})`;
+            document.getElementById('c-match').textContent =
+                `(${detailResults.filter(r => r['Resultado'] === 'COINCIDENCIA').length})`;
+            document.getElementById('c-miss').textContent =
+                `(${detailResults.filter(r => r['Resultado'] !== 'COINCIDENCIA').length})`;
+
+            document.getElementById('pagerInfo').textContent = rows.length
+                ? `Mostrando ${start + 1}–${start + page.length} de ${rows.length}`
+                : 'Sin resultados para este filtro';
+            document.getElementById('prevBtn').disabled = detailPage <= 1;
+            document.getElementById('nextBtn').disabled = detailPage >= totalPages;
+
+            document.querySelectorAll('.tab-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.filter === detailFilter));
+        }
+
+        function setDetailData(results) {
+            detailResults = results || [];
+            detailFilter = 'all';
+            detailQuery = '';
+            detailPage = 1;
+            document.getElementById('detailSearch').value = '';
+            renderDetail();
+        }
+
+        function setFilter(f) { detailFilter = f; detailPage = 1; renderDetail(); }
+        function onSearch(q) { detailQuery = q; detailPage = 1; renderDetail(); }
+        function changePage(d) { detailPage += d; renderDetail(); }
+
+        function resetDetail() {
+            detailResults = [];
+            detailFilter = 'all';
+            detailQuery = '';
+            detailPage = 1;
+            document.getElementById('detailSearch').value = '';
+            document.getElementById('resultsBody').innerHTML = '';
+            ['c-all', 'c-match', 'c-miss'].forEach(id => { document.getElementById(id).textContent = ''; });
+            document.getElementById('pagerInfo').textContent = '';
+            document.querySelectorAll('.tab-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.filter === 'all'));
+        }
+
         function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
         function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
         function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
@@ -1333,7 +1680,6 @@
 
             nameEl.textContent = file.name;
             dz.classList.add(isEm ? 'ready-emerald' : 'ready-indigo');
-            dz.classList.remove('file-card');
 
             colSel.innerHTML = '';
             sheetSel.innerHTML = '<option>Cargando hojas…</option>';
@@ -1376,7 +1722,7 @@
                 data.columns.forEach((col, idx) => {
                     const opt = document.createElement('option');
                     opt.value = col;
-                    opt.textContent = `${String.fromCharCode(65 + idx)} — ${col}`;
+                    opt.textContent = `${numberToExcelCol(idx)} — ${col}`;
                     colSel.appendChild(opt);
                 });
             } catch {
@@ -1427,6 +1773,7 @@
                 document.getElementById('st-rate').textContent = s.match_rate + '%';
                 document.getElementById('st-dupes').textContent = s.duplicates_file2.toLocaleString();
                 document.getElementById('st-bar').style.width = '0%';
+                setDetailData(data.results);
 
                 resultsArea.style.display = 'flex';
                 setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
@@ -1468,6 +1815,7 @@
             });
             document.getElementById('st-bar').style.width = '0%';
             currentExcelB64 = null;
+            resetDetail();
             document.getElementById('threshold').value = '85';
             document.getElementById('thresholdVal').textContent = '85';
             document.getElementById('modalThreshold').textContent = '85';
