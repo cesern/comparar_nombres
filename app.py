@@ -45,10 +45,10 @@ def normalize_name(name):
     if pd.isna(name):
         return ""
     name = str(name).upper()
-    # Quitar acentos (eliminar marcas diacríticas; la Ñ se conserva)
+    # Quitar acentos (eliminar marcas diacríticas; la Ñ se pliega a N — ambos lados igual)
     name = ''.join((c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn'))
-    # Quitar puntuación y símbolos (MA. -> MA, O'BRIEN -> O BRIEN) conservando Ñ, dígitos y espacios
-    name = re.sub(r'[^A-ZÑ0-9 ]+', ' ', name)
+    # Quitar puntuación y símbolos (MA. -> MA, O'BRIEN -> O BRIEN); quedan letras, dígitos y espacios
+    name = re.sub(r'[^A-Z0-9 ]+', ' ', name)
     # Eliminar espacios duplicados y extremos
     name = re.sub(r'\s+', ' ', name).strip()
     return name
