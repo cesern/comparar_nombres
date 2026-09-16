@@ -1080,6 +1080,16 @@
 
                 <div style="flex:0.25"></div>
 
+                <!-- Umbral de similitud -->
+                <div class="threshold-wrap" style="flex-shrink:0">
+                    <div class="select-label lbl-indigo" style="margin-bottom:0.3rem">
+                        <i class="fas fa-sliders"></i> Umbral&nbsp;<span id="thresholdVal" style="color:var(--indigo-dark)">85</span>
+                    </div>
+                    <input type="range" id="threshold" name="threshold" min="0" max="100" value="85" step="1"
+                        style="width:100%;accent-color:var(--indigo);cursor:pointer"
+                        oninput="document.getElementById('thresholdVal').textContent = this.value; document.getElementById('modalThreshold').textContent = this.value">
+                </div>
+
                 <!-- Loading -->
                 <div id="loadingArea" class="loading-area" style="display:none">
                     <div class="loading-top">
@@ -1240,30 +1250,35 @@
                     PÉREZ» y «PÉREZ JUAN» se reconocen como la misma persona.</p>
                 <div class="threshold-box">
                     <i class="fas fa-sliders"></i>
-                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud es ≥ <strong>85 / 100</strong>.
-                        Exactamente 100 = coincidencia perfecta. Por debajo de 85 = <strong>NO ENCONTRADO</strong>.</p>
+                    <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud es ≥ <strong><span id="modalThreshold">85</span> / 100</strong>.
+                        Exactamente 100 = coincidencia perfecta. Por debajo del umbral = <strong>NO ENCONTRADO</strong>.
+                        Puedes ajustar el umbral con el deslizador antes de comparar.</p>
                 </div>
             </div>
 
             <div class="modal-section">
                 <div class="section-tag"><i class="fas fa-file-excel"></i> Archivo resultante</div>
                 <h3>¿Qué contiene el Excel exportado?</h3>
-                <p>El archivo contiene tres hojas:</p>
+                <p>El archivo contiene cuatro hojas:</p>
                 <div class="excel-sheets">
                     <div class="sheet-row">
                         <span class="sheet-badge badge-green">✓ Coincidencias</span>
                         <div class="sheet-desc">Nombres del Archivo 1 que <strong>sí se encontraron</strong> en el
-                            Archivo 2, con la mejor coincidencia y similitud (≥ 85%).</div>
+                            Archivo 2, con la mejor coincidencia y similitud (≥ umbral elegido).</div>
                     </div>
                     <div class="sheet-row">
                         <span class="sheet-badge badge-red">✗ No encontrados</span>
                         <div class="sheet-desc">Nombres que <strong>no tienen coincidencia</strong> suficiente.
-                            Similitud menor a 85%. Útil detectar omisiones o errores.</div>
+                            Similitud menor al umbral. Útil detectar omisiones o errores.</div>
                     </div>
                     <div class="sheet-row">
                         <span class="sheet-badge badge-amber">⚠ Duplicados</span>
                         <div class="sheet-desc">Nombres <strong>repetidos</strong> en el Archivo 2 (tras normalizar).
                             Pueden inflar resultados artificialmente.</div>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-amber">⚠ Duplicados A1</span>
+                        <div class="sheet-desc">Nombres <strong>repetidos</strong> en el Archivo 1 (tras normalizar).</div>
                     </div>
                 </div>
             </div>
@@ -1367,10 +1382,15 @@
             formData.append('col2_name', document.getElementById('colSelect2').value || '');
             formData.append('sheet1_name', document.getElementById('sheetSelect1').value || '');
             formData.append('sheet2_name', document.getElementById('sheetSelect2').value || '');
+            formData.append('threshold', document.getElementById('threshold').value || '85');
 
             try {
                 const response = await fetch('/compare', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Error interno al procesar los archivos');
+                if (!response.ok) {
+                    let msg = 'Error interno al procesar los archivos';
+                    try { const e = await response.json(); if (e.detail) msg = e.detail; } catch (_) {}
+                    throw new Error(msg);
+                }
                 const data = await response.json();
                 currentExcelB64 = data.excel_b64;
 
@@ -1423,6 +1443,9 @@
             });
             document.getElementById('st-bar').style.width = '0%';
             currentExcelB64 = null;
+            document.getElementById('threshold').value = '85';
+            document.getElementById('thresholdVal').textContent = '85';
+            document.getElementById('modalThreshold').textContent = '85';
         }
     </script>
 </body>

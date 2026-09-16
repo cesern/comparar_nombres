@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.xlsx
+*.xls
+!requirements.txt
+.env
+.venv/
+venv/
+.vscode/
+.DS_Store
+iniciar.bat
