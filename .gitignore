@@ -9,3 +9,7 @@ venv/
 .vscode/
 .DS_Store
 iniciar.bat
+# Agent skills
+.agents/
+# Skills lock
+skills-lock.json
