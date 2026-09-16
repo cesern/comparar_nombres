@@ -1243,11 +1243,36 @@
             </div>
 
             <div class="modal-section">
+                <div class="section-tag"><i class="fas fa-file-excel"></i> Formato del Excel</div>
+                <h3>Tu Excel debe llevar encabezado</h3>
+                <p>La <strong>primera fila</strong> de cada hoja se usa como <strong>encabezado</strong> (título de
+                    columna) y <strong>no se compara</strong>.</p>
+                <div class="excel-sheets">
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-green">Fila 1</span>
+                        <div class="sheet-desc">Título de columna, ej. <strong>NOMBRE</strong>. No se busca ni se
+                            cuenta.</div>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-green">Fila 2 →</span>
+                        <div class="sheet-desc">Aquí empiezan los <strong>datos a comparar</strong>.</div>
+                    </div>
+                    <div class="sheet-row">
+                        <span class="sheet-badge badge-amber">⚠ Sin título</span>
+                        <div class="sheet-desc">Si tu lista empieza en la fila 1 sin encabezado, el primer nombre
+                            <strong>se perderá</strong> (se convierte en nombre de columna). Agrega una fila de
+                            título antes de subir el archivo.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section">
                 <div class="section-tag"><i class="fas fa-microchip"></i> El algoritmo</div>
                 <h3>Fuzzy Matching con RapidFuzz</h3>
-                <p>Primero se <strong>normalizan</strong> los nombres: mayúsculas, sin acentos, sin espacios duplicados.
-                    Luego usa <strong>Token Sort Ratio</strong>, que reordena palabras antes de comparar — así «JUAN
-                    PÉREZ» y «PÉREZ JUAN» se reconocen como la misma persona.</p>
+                <p>Primero se <strong>normalizan</strong> los nombres: mayúsculas, sin acentos, sin puntuación, sin
+                    espacios duplicados.
+                    Luego combina <strong>Token Sort + WRatio</strong>, que tolera orden invertido, segundo apellido
+                    y errores tipográficos — así «JUAN PÉREZ» y «PÉREZ JUAN» se reconocen como la misma persona.</p>
                 <div class="threshold-box">
                     <i class="fas fa-sliders"></i>
                     <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud es ≥ <strong><span id="modalThreshold">85</span> / 100</strong>.
