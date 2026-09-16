@@ -360,6 +360,42 @@
             }
         }
 
+        /* Modo determinado (jobs async): barra con % real + cancelar */
+        .loading-bar-track.determinate .loading-bar-fill {
+            animation: none;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading-sub {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.73rem;
+            color: var(--indigo-dark);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid #c7d2fe;
+            color: var(--indigo);
+            border-radius: 0.45rem;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+
+        .btn-cancel:hover {
+            background: #fff0f3;
+            color: var(--rose);
+            border-color: #fecdd3;
+        }
+
         /* ── Botones ── */
         .btn-row {
             display: flex;
@@ -1208,8 +1244,7 @@
 
 .toast.out { opacity: 0; transition: opacity 0.3s; }
 
-/* ── Veredicto memorable: la fila de coincidencia lleva el acento ── */
-.results-table tbody tr.row-ok td:first-child {
+/* ── Veredicto memorable: la fila de coincidencia lleva el acento ── */.results-table tbody tr.row-ok td:first-child {
     box-shadow: inset 3px 0 0 var(--emerald);
 }
 
@@ -1307,4 +1342,174 @@
     .select-group {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Dropdown propio (sustituye el popup nativo del SO) ── */
+.dd {
+    position: relative;
+    width: 100%;
+}
+
+.dd-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.38rem 0.6rem;
+    border-radius: 0.4rem;
+    border: 1.5px solid #c7d2fe;
+    background: #fafbff;
+    font-size: 0.76rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: left;
+}
+
+.dd-btn:hover {
+    border-color: var(--indigo-mid);
+}
+
+.dd-btn:focus-visible {
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px var(--indigo-light);
+}
+
+.dd.em .dd-btn {
+    border-color: #6ee7b7;
+    background-color: #f0fdf9;
+}
+
+.dd.em .dd-btn:hover {
+    border-color: var(--emerald);
+}
+
+.dd.em .dd-btn:focus-visible {
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 3px var(--emerald-light);
+}
+
+.dd-value {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dd-value.placeholder {
+    color: var(--text-muted);
+}
+
+.dd-letter {
+    flex-shrink: 0;
+    font-weight: 800;
+    font-size: 0.68rem;
+    background: var(--indigo-light);
+    color: var(--indigo-dark);
+    border-radius: 0.3rem;
+    padding: 0.05rem 0.35rem;
+}
+
+.dd.em .dd-letter {
+    background: var(--emerald-light);
+    color: var(--emerald-dark);
+}
+
+.dd-chevron {
+    flex-shrink: 0;
+    color: var(--indigo);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+}
+
+.dd.em .dd-chevron {
+    color: var(--emerald);
+}
+
+.dd.open .dd-chevron {
+    transform: rotate(180deg);
+}
+
+.dd-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1.5px solid #c7d2fe;
+    border-radius: 0.55rem;
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.18);
+    padding: 0.3rem;
+    display: none;
+}
+
+.dd.em .dd-list {
+    border-color: #6ee7b7;
+    box-shadow: 0 12px 32px rgba(5, 150, 105, 0.18);
+}
+
+.dd.open .dd-list {
+    display: block;
+}
+
+.dd-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.42rem 0.55rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.4rem;
+    font-size: 0.78rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.dd-opt:hover,
+.dd-opt.highlight {
+    background: var(--indigo-light);
+    color: var(--text-primary);
+}
+
+.dd.em .dd-opt:hover,
+.dd.em .dd-opt.highlight {
+    background: var(--emerald-light);
+}
+
+.dd-opt .dd-check {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--indigo);
+    visibility: hidden;
+    flex-shrink: 0;
+}
+
+.dd.em .dd-opt .dd-check {
+    color: var(--emerald);
+}
+
+.dd-opt[aria-selected="true"] .dd-check {
+    visibility: visible;
+}
+
+.dd-opt[aria-selected="true"] {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.dd-opt-name {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

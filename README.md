@@ -47,6 +47,12 @@ segundo apellido y typos.
 | POST   | `/sheets`  | Hojas del Excel (`file`)                 |
 | POST   | `/headers` | Columnas de una hoja (`file`, `sheet_name`) |
 | POST   | `/compare` | Compara (`file1`, `file2`, `col1_name`, `col2_name`, `sheet1_name`, `sheet2_name`, `threshold`=85) |
+| POST   | `/start`   | Job async para archivos grandes (mismos campos; responde `202` con `job_id`) |
+| GET    | `/progress/{job_id}` | Avance `{status, stage, processed, total}`; con `status=done` incluye el resultado |
+| DELETE | `/progress/{job_id}` | Cancela el job (o lo limpia si ya terminó) |
+
+Archivos chicos (≤512 KB) usan `/compare` directo; los grandes van por `/start`
+con barra de progreso real y botón Cancelar.
 
 Errores de validación → `400` (o `413` si supera 10 MB) con `{"detail": ...}`.
 

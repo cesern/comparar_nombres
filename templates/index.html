@@ -103,11 +103,15 @@
                 <!-- Loading -->
                 <div id="loadingArea" class="loading-area" style="display:none">
                     <div class="loading-top">
-                        <span><i class="fas fa-cog fa-spin"></i> Procesando registros…</span>
-                        <span>Calculando coincidencias…</span>
+                        <span><i class="fas fa-cog fa-spin"></i> <span id="loadingMsg">Procesando registros…</span></span>
+                        <span id="loadingPct"></span>
                     </div>
-                    <div class="loading-bar-track">
-                        <div class="loading-bar-fill"></div>
+                    <div class="loading-bar-track" id="loadingTrack">
+                        <div class="loading-bar-fill" id="loadingFill"></div>
+                    </div>
+                    <div class="loading-sub" id="loadingSub" style="display:none">
+                        <span id="loadingCounts"></span>
+                        <button type="button" class="btn-cancel" id="cancelBtn">Cancelar</button>
                     </div>
                 </div>
 

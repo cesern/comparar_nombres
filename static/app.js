@@ -202,6 +202,142 @@
             }
         }
 
+        // ── Envío dual: sync (chicos) o job async con progreso (grandes) ──
+        const ASYNC_MIN_BYTES = 512 * 1024;
+        let activeJob = null;
+        let elapsedTimer = null;
+        let pollCounts = '';
+
+        function setLoadingMode(mode) {
+            document.getElementById('loadingTrack').classList.toggle('determinate', mode === 'async');
+            document.getElementById('loadingSub').style.display = mode === 'async' ? 'flex' : 'none';
+            document.getElementById('loadingPct').textContent = '';
+            document.getElementById('loadingFill').style.width = '';
+            document.getElementById('loadingMsg').textContent = 'Procesando registros…';
+            document.getElementById('loadingCounts').textContent = '';
+            pollCounts = '';
+        }
+
+        function stopLoading() {
+            if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+            document.getElementById('loadingArea').style.display = 'none';
+            updateSubmitState();
+        }
+
+        function cancelActiveJobSilent() {
+            if (!activeJob) return;
+            const j = activeJob;
+            activeJob = null;
+            fetch(`/progress/${j}`, { method: 'DELETE' }).catch(() => {});
+        }
+
+        function showResults(data) {
+            const resultsArea = document.getElementById('resultsArea');
+            currentExcelB64 = data.excel_b64;
+
+            const s = data.stats;
+            document.getElementById('st-total1').textContent = s.total_file1.toLocaleString();
+            document.getElementById('st-total2').textContent = s.total_file2.toLocaleString();
+            document.getElementById('st-matches').textContent = s.matches.toLocaleString();
+            document.getElementById('st-notfound').textContent = s.not_found.toLocaleString();
+            document.getElementById('st-rate').textContent = s.match_rate + '%';
+            document.getElementById('st-dupes').textContent = s.duplicates_file2.toLocaleString();
+            document.getElementById('st-bar').style.width = '0%';
+            setDetailData(data.results);
+
+            const dupWarn = document.getElementById('dupWarn');
+            const d1 = s.duplicates_file1 || 0;
+            const d2 = s.duplicates_file2 || 0;
+            if (d1 > 0 || d2 > 0) {
+                const parts = [];
+                if (d2 > 0) parts.push(`${d2} en Archivo 2`);
+                if (d1 > 0) parts.push(`${d1} en Archivo 1`);
+                document.getElementById('dupWarnText').textContent =
+                    `Duplicados detectados (${parts.join(' · ')}). Revisa la hoja correspondiente en el Excel.`;
+                dupWarn.style.display = 'flex';
+            } else {
+                dupWarn.style.display = 'none';
+            }
+
+            resultsArea.style.display = 'flex';
+            setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
+        }
+
+        async function readError(res) {
+            let msg = 'Error interno al procesar los archivos';
+            try { const e = await res.json(); if (e.detail) msg = e.detail; } catch (_) {}
+            return new Error(msg);
+        }
+
+        async function runSync(formData) {
+            const timer = setTimeout(() => compareAbort.abort(), COMPARE_TIMEOUT_MS);
+            try {
+                const response = await fetch('/compare', { method: 'POST', body: formData, signal: compareAbort.signal });
+                if (!response.ok) throw await readError(response);
+                showResults(await response.json());
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        const STAGE_MSG = { encolado: 'En cola…', comparando: 'Comparando nombres…', generando: 'Generando Excel…' };
+
+        async function runAsync(formData) {
+            const started = Date.now();
+            const startRes = await fetch('/start', { method: 'POST', body: formData, signal: compareAbort.signal });
+            if (!startRes.ok) throw await readError(startRes);
+            const { job_id } = await startRes.json();
+            activeJob = job_id;
+            setLoadingMode('async');
+
+            elapsedTimer = setInterval(() => {
+                if (activeJob !== job_id) { clearInterval(elapsedTimer); elapsedTimer = null; return; }
+                const base = Math.round((Date.now() - started) / 1000) + ' s';
+                document.getElementById('loadingCounts').textContent = pollCounts ? `${base} · ${pollCounts}` : base;
+            }, 500);
+
+            while (activeJob === job_id) {
+                await new Promise(r => setTimeout(r, 600));
+                if (activeJob !== job_id) return;
+                let p;
+                try {
+                    const pr = await fetch(`/progress/${job_id}`, { signal: compareAbort.signal });
+                    if (!pr.ok) throw new Error('Se perdió el avance del job');
+                    p = await pr.json();
+                } catch (err) {
+                    if (err && err.name === 'AbortError' && activeJob !== job_id) return;
+                    throw err;
+                }
+                if (p.status === 'done') {
+                    activeJob = null;
+                    showResults(p.result);
+                    return;
+                }
+                if (p.status === 'error') throw new Error(p.error || 'Error en el job');
+                if (p.status === 'cancelled') {
+                    activeJob = null;
+                    showToast('Comparación cancelada.', 'info');
+                    document.getElementById('emptyState').style.display = 'block';
+                    return;
+                }
+                const pct = p.total > 0 ? Math.round(p.processed / p.total * 100) : 0;
+                document.getElementById('loadingFill').style.width = pct + '%';
+                document.getElementById('loadingPct').textContent = pct + '%';
+                document.getElementById('loadingMsg').textContent = STAGE_MSG[p.stage] || 'Procesando…';
+                pollCounts = `${Number(p.processed).toLocaleString()} / ${Number(p.total).toLocaleString()}`;
+            }
+        }
+
+        document.getElementById('cancelBtn').addEventListener('click', async () => {
+            if (!activeJob) return;
+            const j = activeJob;
+            activeJob = null;
+            try { await fetch(`/progress/${j}`, { method: 'DELETE' }); } catch (_) {}
+            showToast('Comparación cancelada.', 'info');
+            document.getElementById('emptyState').style.display = 'block';
+            stopLoading();
+        });
+
         document.getElementById('compareForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const file1 = document.getElementById('file1').files[0];
@@ -213,11 +349,12 @@
             const resultsArea = document.getElementById('resultsArea');
             const emptyState = document.getElementById('emptyState');
 
+            cancelActiveJobSilent();
             if (compareAbort) compareAbort.abort();
             compareAbort = new AbortController();
-            const timer = setTimeout(() => compareAbort.abort(), COMPARE_TIMEOUT_MS);
 
             submitBtn.disabled = true;
+            setLoadingMode('sync');
             loadingArea.style.display = 'block';
             resultsArea.style.display = 'none';
             emptyState.style.display = 'none';
@@ -231,43 +368,11 @@
             formData.append('sheet2_name', document.getElementById('sheetSelect2').value || '');
             formData.append('threshold', document.getElementById('threshold').value || '85');
 
+            const useAsync = file1.size > ASYNC_MIN_BYTES || file2.size > ASYNC_MIN_BYTES;
+
             try {
-                const response = await fetch('/compare', { method: 'POST', body: formData, signal: compareAbort.signal });
-                if (!response.ok) {
-                    let msg = 'Error interno al procesar los archivos';
-                    try { const e = await response.json(); if (e.detail) msg = e.detail; } catch (_) {}
-                    throw new Error(msg);
-                }
-                const data = await response.json();
-                currentExcelB64 = data.excel_b64;
-
-                const s = data.stats;
-                document.getElementById('st-total1').textContent = s.total_file1.toLocaleString();
-                document.getElementById('st-total2').textContent = s.total_file2.toLocaleString();
-                document.getElementById('st-matches').textContent = s.matches.toLocaleString();
-                document.getElementById('st-notfound').textContent = s.not_found.toLocaleString();
-                document.getElementById('st-rate').textContent = s.match_rate + '%';
-                document.getElementById('st-dupes').textContent = s.duplicates_file2.toLocaleString();
-                document.getElementById('st-bar').style.width = '0%';
-                setDetailData(data.results);
-
-                const dupWarn = document.getElementById('dupWarn');
-                const d1 = s.duplicates_file1 || 0;
-                const d2 = s.duplicates_file2 || 0;
-                if (d1 > 0 || d2 > 0) {
-                    const parts = [];
-                    if (d2 > 0) parts.push(`${d2} en Archivo 2`);
-                    if (d1 > 0) parts.push(`${d1} en Archivo 1`);
-                    document.getElementById('dupWarnText').textContent =
-                        `Duplicados detectados (${parts.join(' · ')}). Revisa la hoja correspondiente en el Excel.`;
-                    dupWarn.style.display = 'flex';
-                } else {
-                    dupWarn.style.display = 'none';
-                }
-
-                resultsArea.style.display = 'flex';
-                setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
-
+                if (useAsync) await runAsync(formData);
+                else await runSync(formData);
             } catch (err) {
                 if (err && err.name === 'AbortError') {
                     showToast('La comparación superó el tiempo límite (120 s). Prueba con archivos más pequeños.');
@@ -276,9 +381,7 @@
                 }
                 emptyState.style.display = 'block';
             } finally {
-                clearTimeout(timer);
-                updateSubmitState();
-                loadingArea.style.display = 'none';
+                stopLoading();
             }
         });
 
@@ -291,6 +394,7 @@
         });
 
         function resetForm() {
+            cancelActiveJobSilent();
             [1, 2].forEach(n => {
                 document.getElementById(`file${n}`).value = '';
                 document.getElementById(`name${n}`).textContent = 'Haz clic o arrastra el archivo';
@@ -336,5 +440,167 @@
                     onFileSelected(n);
                 }
             });
+        });
+
+        // ── Dropdown propio accesible (reemplaza el popup nativo del SO) ──
+        function closeAllDd() {
+            document.querySelectorAll('.dd.open').forEach(d => {
+                d.classList.remove('open');
+                d.querySelector('.dd-btn').setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        function splitLetter(text) {
+            const m = String(text).match(/^([A-Z]+)\s*[—–-]\s*(.*)$/);
+            return m ? { letter: m[1], name: m[2] } : { letter: '', name: String(text) };
+        }
+
+        function buildDropdown(cfg) {
+            const native = document.getElementById(cfg.select);
+            if (!native) return;
+            native.style.display = 'none';
+
+            const wrap = document.createElement('div');
+            wrap.className = 'dd' + (cfg.em ? ' em' : '');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'dd-btn';
+            btn.setAttribute('aria-haspopup', 'listbox');
+            btn.setAttribute('aria-expanded', 'false');
+            const letter = document.createElement('span');
+            letter.className = 'dd-letter';
+            letter.style.display = 'none';
+            const val = document.createElement('span');
+            val.className = 'dd-value placeholder';
+            val.textContent = cfg.placeholder;
+            const chev = document.createElement('i');
+            chev.className = 'fas fa-chevron-down dd-chevron';
+            btn.append(letter, val, chev);
+            const list = document.createElement('div');
+            list.className = 'dd-list';
+            list.setAttribute('role', 'listbox');
+            wrap.append(btn, list);
+            native.parentNode.insertBefore(wrap, native);
+
+            let hi = -1;
+
+            function paint() {
+                const o = native.options[native.selectedIndex];
+                if (o && o.value !== '') {
+                    const parts = splitLetter(o.textContent);
+                    letter.style.display = parts.letter ? '' : 'none';
+                    letter.textContent = parts.letter;
+                    val.textContent = parts.name || o.textContent;
+                    val.classList.remove('placeholder');
+                } else if (o) {
+                    letter.style.display = 'none';
+                    val.textContent = o.textContent;
+                    val.classList.remove('placeholder');
+                } else {
+                    letter.style.display = 'none';
+                    val.textContent = cfg.placeholder;
+                    val.classList.add('placeholder');
+                }
+                Array.from(list.children).forEach((b, i) => {
+                    const opt = native.options[i];
+                    b.setAttribute('aria-selected', opt && opt.selected ? 'true' : 'false');
+                });
+            }
+
+            function clearHi() {
+                Array.from(list.children).forEach(b => b.classList.remove('highlight'));
+            }
+
+            function setHi(i) {
+                hi = i;
+                clearHi();
+                const b = list.children[i];
+                if (b) {
+                    b.classList.add('highlight');
+                    b.scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            function open() {
+                closeAllDd();
+                wrap.classList.add('open');
+                btn.setAttribute('aria-expanded', 'true');
+                const idx = Math.max(0, native.selectedIndex);
+                setHi(idx);
+                const b = list.children[idx];
+                if (b) b.focus();
+            }
+
+            function close() {
+                wrap.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+                hi = -1;
+                clearHi();
+            }
+
+            function choose(i) {
+                native.selectedIndex = i;
+                close();
+                btn.focus();
+                paint();
+                if (cfg.kind === 'sheet') onSheetSelected(cfg.n);
+            }
+
+            function refresh() {
+                list.innerHTML = '';
+                Array.from(native.options).forEach((o, i) => {
+                    const parts = splitLetter(o.textContent);
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'dd-opt';
+                    b.setAttribute('role', 'option');
+                    b.setAttribute('aria-selected', o.selected ? 'true' : 'false');
+                    const ls = document.createElement('span');
+                    ls.className = 'dd-letter';
+                    ls.textContent = parts.letter;
+                    if (!parts.letter) ls.style.display = 'none';
+                    const nm = document.createElement('span');
+                    nm.className = 'dd-opt-name';
+                    nm.textContent = parts.name;
+                    const ck = document.createElement('i');
+                    ck.className = 'fas fa-check dd-check';
+                    b.append(ls, nm, ck);
+                    b.addEventListener('click', () => choose(i));
+                    b.addEventListener('mousemove', () => setHi(i));
+                    list.appendChild(b);
+                });
+                paint();
+            }
+
+            btn.addEventListener('click', () => {
+                if (wrap.classList.contains('open')) { close(); } else { open(); }
+            });
+            btn.addEventListener('keydown', e => {
+                if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
+                    e.preventDefault();
+                    open();
+                }
+            });
+            list.addEventListener('keydown', e => {
+                const count = list.children.length;
+                if (e.key === 'ArrowDown') { e.preventDefault(); setHi(Math.min(count - 1, hi + 1)); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); setHi(Math.max(0, hi - 1)); }
+                else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (hi >= 0) choose(hi); }
+                else if (e.key === 'Escape') { e.preventDefault(); close(); btn.focus(); }
+                else if (e.key === 'Tab') { close(); }
+            });
+
+            new MutationObserver(refresh).observe(native, { childList: true });
+            refresh();
+        }
+
+        [
+            { select: 'sheetSelect1', kind: 'sheet', n: 1, em: false, placeholder: 'Elige hoja…' },
+            { select: 'colSelect1', kind: 'col', n: 1, em: false, placeholder: 'Elige columna…' },
+            { select: 'sheetSelect2', kind: 'sheet', n: 2, em: true, placeholder: 'Elige hoja…' },
+            { select: 'colSelect2', kind: 'col', n: 2, em: true, placeholder: 'Elige columna…' },
+        ].forEach(buildDropdown);
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.dd')) closeAllDd();
         });
     
