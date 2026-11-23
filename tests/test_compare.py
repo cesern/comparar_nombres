@@ -93,6 +93,9 @@ def test_validate_extension():
     with pytest.raises(HTTPException) as e:
         _validate_upload(_upload("datos.txt"), b"hola")
     assert e.value.status_code == 400
+    with pytest.raises(HTTPException) as e_xls:
+        _validate_upload(_upload("datos.xls"), b"hola")
+    assert e_xls.value.status_code == 400
 
 
 def test_validate_vacio():
@@ -172,3 +175,15 @@ def test_compare_sin_candidatos_marca_na():
     )
     assert len(matches) == 0
     assert not_found[0]["Mejor Coincidencia Archivo 2"] == "N/A"
+
+
+def test_compare_repetidos_no_exactos_usan_cache():
+    n1 = ["JUAN PEREZ GARCIA", "JUAN PEREZ GARCIA"]
+    o1 = ["Juan Perez Garcia 1", "Juan Perez Garcia 2"]
+    n2 = ["JUAN PEREZ"]
+    o2 = ["Juan Perez"]
+    all_r, matches, _, _, _ = _build_comparison(n1, o1, n2, o2, 85)
+    assert len(all_r) == 2
+    assert len(matches) == 2
+    assert all_r[0]["Mejor Coincidencia Archivo 2"] == "Juan Perez"
+    assert all_r[1]["Mejor Coincidencia Archivo 2"] == "Juan Perez"

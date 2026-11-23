@@ -6,13 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparador de Nombres Excel</title>
     <meta name="description" content="Detecta coincidencias entre dos archivos Excel usando Fuzzy Matching avanzado.">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body>
+    <svg style="display:none" aria-hidden="true">
+        <symbol id="ic-bolt" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+        <symbol id="ic-circle-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+        <symbol id="ic-circle-exclamation" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+        <symbol id="ic-file-excel" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9.5 12.5 14.5 17.5"/><path d="M14.5 12.5 9.5 17.5"/></symbol>
+        <symbol id="ic-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+        <symbol id="ic-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></symbol>
+        <symbol id="ic-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+        <symbol id="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+        <symbol id="ic-layer-group" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+        <symbol id="ic-columns" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></symbol>
+        <symbol id="ic-sliders" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
+        <symbol id="ic-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+        <symbol id="ic-redo-alt" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+        <symbol id="ic-chart-bar" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+        <symbol id="ic-file-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+        <symbol id="ic-triangle-exclamation" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+        <symbol id="ic-file-alt" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+        <symbol id="ic-check-circle" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+        <symbol id="ic-times-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol>
+        <symbol id="ic-percentage" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+        <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+        <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+        <symbol id="ic-xmark" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+        <symbol id="ic-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+        <symbol id="ic-list-ol" viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></symbol>
+        <symbol id="ic-microchip" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol>
+    </svg>
+
     <div class="app-shell">
 
         <!-- ══ SIDEBAR ══ -->
@@ -20,11 +46,11 @@
             <div class="sidebar-header">
                 <div class="header-top">
                     <div class="brand">
-                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="logo-icon"><svg class="ic" aria-hidden="true"><use href="#ic-bolt"/></svg></div>
                         <h1>Comparador de Nombres</h1>
                     </div>
                     <button class="btn-info" onclick="openModal()">
-                        <i class="fas fa-circle-info"></i> Información
+                        <svg class="ic" aria-hidden="true"><use href="#ic-circle-info"/></svg> Información
                     </button>
                 </div>
                 <p class="sidebar-desc">Detecta coincidencias entre dos listas Excel usando <strong
@@ -36,26 +62,25 @@
             <form id="compareForm" class="dz-group">
 
                 <!-- Archivo 1 -->
-                <div class="file-card" id="dz1" role="button" tabindex="0" aria-label="Seleccionar Archivo 1, lista principal"
-                    onclick="document.getElementById('file1').click()"
-                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file1').click()}">
-                    <input type="file" id="file1" name="file1" accept=".xlsx,.xls" style="display:none" required
-                        onchange="onFileSelected(1)">
-                    <div class="file-icon indigo"><i class="fas fa-file-excel"></i></div>
+                <input type="file" id="file1" name="file1" accept=".xlsx" style="display:none" required
+                    onchange="onFileSelected(1)">
+                <button type="button" class="file-card" id="dz1" aria-label="Seleccionar Archivo 1, lista principal"
+                    onclick="document.getElementById('file1').click()">
+                    <div class="file-icon indigo"><svg class="ic" aria-hidden="true"><use href="#ic-file-excel"/></svg></div>
                     <div class="file-info">
                         <div class="file-title">Archivo 1 · Lista Principal</div>
                         <div class="file-name" id="name1">Haz clic o arrastra el archivo</div>
                     </div>
-                    <i class="fas fa-chevron-right file-chevron"></i>
-                </div>
+                    <svg class="ic file-chevron" aria-hidden="true"><use href="#ic-chevron-right"/></svg>
+                </button>
 
                 <div id="selWrap1" class="step-panel select-group">
                     <div class="select-wrap">
-                        <label class="select-label lbl-indigo" for="sheetSelect1"><i class="fas fa-layer-group"></i> Hoja</label>
+                        <label id="lblSheet1" class="select-label lbl-indigo" for="sheetSelect1"><svg class="ic" aria-hidden="true"><use href="#ic-layer-group"/></svg> Hoja</label>
                         <select id="sheetSelect1" class="panel-select" onchange="onSheetSelected(1)"></select>
                     </div>
                     <div class="select-wrap">
-                        <label class="select-label lbl-indigo" for="colSelect1"><i class="fas fa-columns"></i> Columna</label>
+                        <label id="lblCol1" class="select-label lbl-indigo" for="colSelect1"><svg class="ic" aria-hidden="true"><use href="#ic-columns"/></svg> Columna</label>
                         <select id="colSelect1" name="col1_name" class="panel-select"></select>
                     </div>
                 </div>
@@ -63,26 +88,25 @@
                 <div class="divider"></div>
 
                 <!-- Archivo 2 -->
-                <div class="file-card emerald-card" id="dz2" role="button" tabindex="0" aria-label="Seleccionar Archivo 2, lista de comparación"
-                    onclick="document.getElementById('file2').click()"
-                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file2').click()}">
-                    <input type="file" id="file2" name="file2" accept=".xlsx,.xls" style="display:none" required
-                        onchange="onFileSelected(2)">
-                    <div class="file-icon emerald"><i class="fas fa-file-excel"></i></div>
+                <input type="file" id="file2" name="file2" accept=".xlsx" style="display:none" required
+                    onchange="onFileSelected(2)">
+                <button type="button" class="file-card emerald-card" id="dz2" aria-label="Seleccionar Archivo 2, lista de comparación"
+                    onclick="document.getElementById('file2').click()">
+                    <div class="file-icon emerald"><svg class="ic" aria-hidden="true"><use href="#ic-file-excel"/></svg></div>
                     <div class="file-info">
                         <div class="file-title em">Archivo 2 · Lista de Comparación</div>
                         <div class="file-name" id="name2">Haz clic o arrastra el archivo</div>
                     </div>
-                    <i class="fas fa-chevron-right file-chevron"></i>
-                </div>
+                    <svg class="ic file-chevron" aria-hidden="true"><use href="#ic-chevron-right"/></svg>
+                </button>
 
                 <div id="selWrap2" class="step-panel select-group">
                     <div class="select-wrap">
-                        <label class="select-label lbl-emerald" for="sheetSelect2"><i class="fas fa-layer-group"></i> Hoja</label>
+                        <label id="lblSheet2" class="select-label lbl-emerald" for="sheetSelect2"><svg class="ic" aria-hidden="true"><use href="#ic-layer-group"/></svg> Hoja</label>
                         <select id="sheetSelect2" class="panel-select em" onchange="onSheetSelected(2)"></select>
                     </div>
                     <div class="select-wrap">
-                        <label class="select-label lbl-emerald" for="colSelect2"><i class="fas fa-columns"></i> Columna</label>
+                        <label id="lblCol2" class="select-label lbl-emerald" for="colSelect2"><svg class="ic" aria-hidden="true"><use href="#ic-columns"/></svg> Columna</label>
                         <select id="colSelect2" name="col2_name" class="panel-select em"></select>
                     </div>
                 </div>
@@ -92,7 +116,7 @@
                 <!-- Umbral de similitud -->
                 <div class="threshold-wrap" style="flex-shrink:0">
                     <div class="select-label lbl-indigo" style="margin-bottom:0.3rem">
-                        <i class="fas fa-sliders"></i> Umbral&nbsp;<span id="thresholdVal" style="color:var(--indigo-dark)">85</span>
+                        <svg class="ic" aria-hidden="true"><use href="#ic-sliders"/></svg> Umbral&nbsp;<span id="thresholdVal" style="color:var(--indigo-dark)">85</span>
                     </div>
                     <input type="range" id="threshold" name="threshold" min="0" max="100" value="85" step="1"
                         aria-label="Umbral de similitud para considerar coincidencia"
@@ -103,7 +127,7 @@
                 <!-- Loading -->
                 <div id="loadingArea" class="loading-area" style="display:none">
                     <div class="loading-top">
-                        <span><i class="fas fa-cog fa-spin"></i> <span id="loadingMsg">Procesando registros…</span></span>
+                        <span><svg class="ic ic-spin" aria-hidden="true"><use href="#ic-cog"/></svg> <span id="loadingMsg">Procesando registros…</span></span>
                         <span id="loadingPct"></span>
                     </div>
                     <div class="loading-bar-track" id="loadingTrack">
@@ -118,10 +142,10 @@
                 <!-- Botones -->
                 <div class="btn-row">
                     <button type="submit" id="submitBtn" class="btn-primary" disabled>
-                        <i class="fas fa-bolt"></i> Comparar
+                        <svg class="ic" aria-hidden="true"><use href="#ic-bolt"/></svg> Comparar
                     </button>
                     <button type="button" class="btn-secondary" onclick="resetForm()">
-                        <i class="fas fa-redo-alt"></i> Reiniciar
+                        <svg class="ic" aria-hidden="true"><use href="#ic-redo-alt"/></svg> Reiniciar
                     </button>
                 </div>
 
@@ -132,7 +156,7 @@
         <main class="main-panel">
 
             <div class="empty-state" id="emptyState">
-                <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="empty-icon"><svg class="ic" aria-hidden="true"><use href="#ic-chart-bar"/></svg></div>
                 <h2>Sin resultados aún</h2>
                 <p>Arrastra dos archivos Excel o haz clic para seleccionarlos, elige hoja y columna, y presiona <strong
                         style="color:var(--indigo)">Comparar</strong>.</p>
@@ -140,48 +164,48 @@
 
             <div class="dashboard" id="resultsArea" style="display:none">
                 <div class="dash-header">
-                    <div class="dash-title"><i class="fas fa-chart-bar"></i> Resumen de la Comparación</div>
+                    <div class="dash-title"><svg class="ic" aria-hidden="true"><use href="#ic-chart-bar"/></svg> Resumen de la Comparación</div>
                     <button class="btn-download" id="downloadBtn">
-                        <i class="fas fa-file-download"></i> Exportar Excel
+                        <svg class="ic" aria-hidden="true"><use href="#ic-file-download"/></svg> Exportar Excel
                     </button>
                 </div>
 
                 <div class="dup-warn" id="dupWarn" style="display:none">
-                    <i class="fas fa-triangle-exclamation"></i>
+                    <svg class="ic" aria-hidden="true"><use href="#ic-triangle-exclamation"/></svg>
                     <span id="dupWarnText"></span>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-card card-violet">
-                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-file-alt"/></svg></div>
                         <div>
                             <div class="stat-value" id="st-total1">—</div>
                             <div class="stat-label">Elementos Archivo 1</div>
                         </div>
                     </div>
                     <div class="stat-card card-sky">
-                        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-file-alt"/></svg></div>
                         <div>
                             <div class="stat-value" id="st-total2">—</div>
                             <div class="stat-label">Elementos Archivo 2</div>
                         </div>
                     </div>
                     <div class="stat-card card-emerald">
-                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-check-circle"/></svg></div>
                         <div>
                             <div class="stat-value" id="st-matches">—</div>
                             <div class="stat-label">Coincidencias</div>
                         </div>
                     </div>
                     <div class="stat-card card-rose">
-                        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-times-circle"/></svg></div>
                         <div>
                             <div class="stat-value" id="st-notfound">—</div>
                             <div class="stat-label">No Encontrados</div>
                         </div>
                     </div>
                     <div class="stat-card card-indigo">
-                        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-percentage"/></svg></div>
                         <div style="flex:1;min-width:0">
                             <div class="stat-value" id="st-rate">—</div>
                             <div class="stat-label">Tasa de Coincidencia</div>
@@ -191,7 +215,7 @@
                         </div>
                     </div>
                     <div class="stat-card card-amber">
-                        <div class="stat-icon"><i class="fas fa-copy"></i></div>
+                        <div class="stat-icon"><svg class="ic" aria-hidden="true"><use href="#ic-copy"/></svg></div>
                         <div>
                             <div class="stat-value" id="st-dupes">—</div>
                             <div class="stat-label">Duplicados Archivo 2</div>
@@ -211,7 +235,7 @@
                             No encontrados <span id="c-miss"></span>
                         </button>
                         <label class="detail-search">
-                            <i class="fas fa-search"></i>
+                            <svg class="ic" aria-hidden="true"><use href="#ic-search"/></svg>
                             <input type="search" id="detailSearch" placeholder="Buscar nombre…" oninput="onSearch(this.value)">
                         </label>
                     </div>
@@ -232,10 +256,10 @@
                         <span class="pager-info" id="pagerInfo"></span>
                         <div class="pager-btns">
                             <button type="button" class="pager-btn" id="prevBtn" onclick="changePage(-1)">
-                                <i class="fas fa-chevron-left"></i> Anterior
+                                <svg class="ic" aria-hidden="true"><use href="#ic-chevron-left"/></svg> Anterior
                             </button>
                             <button type="button" class="pager-btn" id="nextBtn" onclick="changePage(1)">
-                                Siguiente <i class="fas fa-chevron-right"></i>
+                                Siguiente <svg class="ic" aria-hidden="true"><use href="#ic-chevron-right"/></svg>
                             </button>
                         </div>
                     </div>
@@ -247,21 +271,21 @@
 
     <!-- ══ MODAL INFORMACIÓN ══ -->
     <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
-        <div class="modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
 
             <div class="modal-header">
                 <div class="modal-header-left">
-                    <div class="modal-logo"><i class="fas fa-bolt"></i></div>
+                    <div class="modal-logo"><svg class="ic" aria-hidden="true"><use href="#ic-bolt"/></svg></div>
                     <div>
-                        <div class="modal-title">¿Cómo funciona?</div>
+                        <div class="modal-title" id="modalTitle">¿Cómo funciona?</div>
                         <div class="modal-subtitle">Guía del Comparador de Nombres</div>
                     </div>
                 </div>
-                <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+                <button class="modal-close" aria-label="Cerrar" onclick="closeModal()"><svg class="ic" aria-hidden="true"><use href="#ic-xmark"/></svg></button>
             </div>
 
             <div class="modal-section">
-                <div class="section-tag"><i class="fas fa-rocket"></i> La aplicación</div>
+                <div class="section-tag"><svg class="ic" aria-hidden="true"><use href="#ic-rocket"/></svg> La aplicación</div>
                 <h3>¿Qué hace esta herramienta?</h3>
                 <p>Compara dos listas de nombres en archivos Excel y determina si cada nombre del <strong>Archivo
                         1</strong> aparece — exacta o aproximadamente — en el <strong>Archivo 2</strong>. Diseñada para
@@ -269,7 +293,7 @@
             </div>
 
             <div class="modal-section">
-                <div class="section-tag"><i class="fas fa-list-ol"></i> Flujo de uso</div>
+                <div class="section-tag"><svg class="ic" aria-hidden="true"><use href="#ic-list-ol"/></svg> Flujo de uso</div>
                 <h3>Cómo utilizarla paso a paso</h3>
                 <div class="info-steps">
                     <div class="info-step">
@@ -304,7 +328,7 @@
             </div>
 
             <div class="modal-section">
-                <div class="section-tag"><i class="fas fa-file-excel"></i> Formato del Excel</div>
+                <div class="section-tag"><svg class="ic" aria-hidden="true"><use href="#ic-file-excel"/></svg> Formato del Excel</div>
                 <h3>Tu Excel debe llevar encabezado</h3>
                 <p>La <strong>primera fila</strong> de cada hoja se usa como <strong>encabezado</strong> (título de
                     columna) y <strong>no se compara</strong>.</p>
@@ -328,14 +352,14 @@
             </div>
 
             <div class="modal-section">
-                <div class="section-tag"><i class="fas fa-microchip"></i> El algoritmo</div>
+                <div class="section-tag"><svg class="ic" aria-hidden="true"><use href="#ic-microchip"/></svg> El algoritmo</div>
                 <h3>Fuzzy Matching con RapidFuzz</h3>
                 <p>Primero se <strong>normalizan</strong> los nombres: mayúsculas, sin acentos, sin puntuación, sin
                     espacios duplicados.
                     Luego combina <strong>Token Sort + WRatio</strong>, que tolera orden invertido, segundo apellido
                     y errores tipográficos — así «JUAN PÉREZ» y «PÉREZ JUAN» se reconocen como la misma persona.</p>
                 <div class="threshold-box">
-                    <i class="fas fa-sliders"></i>
+                    <svg class="ic" aria-hidden="true"><use href="#ic-sliders"/></svg>
                     <p>Se considera <strong>COINCIDENCIA</strong> cuando la similitud es ≥ <strong><span id="modalThreshold">85</span> / 100</strong>.
                         Exactamente 100 = coincidencia perfecta. Por debajo del umbral = <strong>NO ENCONTRADO</strong>.
                         Puedes ajustar el umbral con el deslizador antes de comparar.</p>
@@ -343,7 +367,7 @@
             </div>
 
             <div class="modal-section">
-                <div class="section-tag"><i class="fas fa-file-excel"></i> Archivo resultante</div>
+                <div class="section-tag"><svg class="ic" aria-hidden="true"><use href="#ic-file-excel"/></svg> Archivo resultante</div>
                 <h3>¿Qué contiene el Excel exportado?</h3>
                 <p>El archivo contiene cuatro hojas:</p>
                 <div class="excel-sheets">

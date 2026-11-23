@@ -8,7 +8,7 @@ diferencias de acentos, mayúsculas, puntuación, orden invertido o typos.
 
 - La **primera fila** de cada hoja se usa como **encabezado** y no se compara.
   Pon un título (ej. `NOMBRE`) en la fila 1 y los datos desde la fila 2.
-- Formatos: `.xlsx` / `.xls`, máximo 10 MB por archivo.
+- Formatos: `.xlsx`, máximo 10 MB por archivo.
 
 ## Uso local (Windows)
 
@@ -44,22 +44,22 @@ segundo apellido y typos.
 | ------ | ---------- | ---------------------------------------- |
 | GET    | `/`        | Interfaz web                             |
 | GET    | `/health`  | Healthcheck (Render) → `{"status":"ok"}` |
-| POST   | `/sheets`  | Hojas del Excel (`file`)                 |
+| POST   | `/sheets`  | Hojas del Excel y columnas de la 1ª hoja (`file`) |
 | POST   | `/headers` | Columnas de una hoja (`file`, `sheet_name`) |
-| POST   | `/compare` | Compara (`file1`, `file2`, `col1_name`, `col2_name`, `sheet1_name`, `sheet2_name`, `threshold`=85) |
-| POST   | `/start`   | Job async para archivos grandes (mismos campos; responde `202` con `job_id`) |
+| POST   | `/compare` | Compara directo/síncrono (`file1`, `file2`, `col1_name`, `col2_name`, `sheet1_name`, `sheet2_name`, `threshold`=85) |
+| POST   | `/start`   | Job async (mismos campos; responde `202` con `job_id`) |
 | GET    | `/progress/{job_id}` | Avance `{status, stage, processed, total}`; con `status=done` incluye el resultado |
+| GET    | `/download/{job_id}` | Descarga binaria (`.xlsx`) del resultado de un job |
 | DELETE | `/progress/{job_id}` | Cancela el job (o lo limpia si ya terminó) |
 
-Archivos chicos (≤512 KB) usan `/compare` directo; los grandes van por `/start`
-con barra de progreso real y botón Cancelar.
+La interfaz web usa `/start` para mostrar barra de progreso real y botón Cancelar.
 
 Errores de validación → `400` (o `413` si supera 10 MB) con `{"detail": ...}`.
 
 ## Tests
 
 ```bat
-.\.venv\Scripts\python.exe -m pip install pytest
+.\.venv\Scripts\python.exe -m pip install pytest httpx
 .\.venv\Scripts\python.exe -m pytest tests/ -q
 ```
 
@@ -72,7 +72,7 @@ Cubren normalización, scorer, umbral, validación de archivos y comparación
 Web Service con auto-deploy desde `main`:
 
 - Build: `pip install -r requirements.txt`
-- Start: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+- Start: `uvicorn app:app --host 0.0.0.0 --port $PORT` (1 solo *worker*, ya que los jobs `/start` se guardan en memoria del proceso)
 - Health check path: `/health`
 
 Cada push a `main` despliega. Flujo seguro: validar local (`pytest` + una
@@ -82,7 +82,9 @@ Rollback desde el dashboard si algo falla.
 ## Estructura
 
 ```text
-app.py               # FastAPI + lógica de comparación
+app.py               # FastAPI, endpoints y gestión de jobs
+matching.py          # Normalización y comparación fuzzy (RapidFuzz)
+excel_io.py          # Validación, lectura y exportación Excel
 templates/index.html # UI (el JS/CSS vive en static/)
 static/app.js        # Frontend
 static/styles.css    # Estilos

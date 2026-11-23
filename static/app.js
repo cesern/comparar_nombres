@@ -1,22 +1,31 @@
 // static/app.js — extraido de templates/index.html (Fase 3B)
         let currentExcelB64 = null;
+        let currentDownloadUrl = null;
 
         // ── Tabla de detalle: estado y paginación (cliente) ──
         const PAGE_SIZE = 50;
-        const COMPARE_TIMEOUT_MS = 120000;
         let detailResults = [];
         let detailFilter = 'all';
         let detailQuery = '';
         let detailPage = 1;
         let compareAbort = null;
 
+        function makeIcon(name, extraClass = '') {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', extraClass ? `ic ${extraClass}` : 'ic');
+            svg.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttribute('href', `#ic-${name}`);
+            svg.appendChild(use);
+            return svg;
+        }
+
         function showToast(msg, type = 'error') {
             const wrap = document.getElementById('toastWrap');
             if (!wrap) return;
             const el = document.createElement('div');
             el.className = 'toast toast-' + type;
-            const icon = document.createElement('i');
-            icon.className = type === 'error' ? 'fas fa-circle-exclamation' : 'fas fa-circle-info';
+            const icon = makeIcon(type === 'error' ? 'circle-exclamation' : 'circle-info');
             const span = document.createElement('span');
             span.textContent = msg;
             el.append(icon, span);
@@ -26,7 +35,9 @@
 
         function updateSubmitState() {
             const ok = document.getElementById('file1').files.length > 0 &&
-                       document.getElementById('file2').files.length > 0;
+                       document.getElementById('file2').files.length > 0 &&
+                       document.getElementById('colSelect1').value !== '' &&
+                       document.getElementById('colSelect2').value !== '';
             document.getElementById('submitBtn').disabled = !ok;
         }
 
@@ -131,10 +142,54 @@
                 b.classList.toggle('active', b.dataset.filter === 'all'));
         }
 
-        function openModal() { document.getElementById('modalOverlay').classList.add('open'); }
-        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+        let lastFocusedEl = null;
+
+        function openModal() {
+            lastFocusedEl = document.activeElement;
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.add('open');
+            const closeBtn = overlay.querySelector('.modal-close');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            if (!overlay.classList.contains('open')) return;
+            overlay.classList.remove('open');
+            if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') {
+                lastFocusedEl.focus();
+                lastFocusedEl = null;
+            }
+        }
+
         function handleOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        document.addEventListener('keydown', e => {
+            const overlay = document.getElementById('modalOverlay');
+            if (!overlay.classList.contains('open')) return;
+            if (e.key === 'Escape') { closeModal(); return; }
+            if (e.key === 'Tab') {
+                const focusables = overlay.querySelectorAll('button, [href], input, select, [tabindex]:not([tabindex="-1"])');
+                if (!focusables.length) return;
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault(); last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault(); first.focus();
+                }
+            }
+        });
+
+        function populateColumns(colSel, columns) {
+            colSel.innerHTML = '';
+            columns.forEach((col, idx) => {
+                const opt = document.createElement('option');
+                opt.value = col;
+                opt.textContent = `${numberToExcelCol(idx)} — ${col}`;
+                colSel.appendChild(opt);
+            });
+        }
 
         async function onFileSelected(n) {
             const input = document.getElementById(`file${n}`);
@@ -167,7 +222,11 @@
                     opt.value = s; opt.textContent = s;
                     sheetSel.appendChild(opt);
                 });
-                await loadColumns(n);
+                if (Array.isArray(data.columns) && data.columns.length > 0) {
+                    populateColumns(colSel, data.columns);
+                } else {
+                    await loadColumns(n);
+                }
             } catch {
                 sheetSel.innerHTML = '<option value="">Error al leer hojas</option>';
             } finally {
@@ -190,29 +249,24 @@
                 const res = await fetch('/headers', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error();
                 const data = await res.json();
-                colSel.innerHTML = '';
-                data.columns.forEach((col, idx) => {
-                    const opt = document.createElement('option');
-                    opt.value = col;
-                    opt.textContent = `${numberToExcelCol(idx)} — ${col}`;
-                    colSel.appendChild(opt);
-                });
+                populateColumns(colSel, data.columns);
             } catch {
                 colSel.innerHTML = '<option value="">Error al leer columnas</option>';
+            } finally {
+                updateSubmitState();
             }
         }
 
-        // ── Envío dual: sync (chicos) o job async con progreso (grandes) ──
-        const ASYNC_MIN_BYTES = 512 * 1024;
+        // ── Envío async con barra de progreso ──
         let activeJob = null;
         let elapsedTimer = null;
         let pollCounts = '';
 
-        function setLoadingMode(mode) {
-            document.getElementById('loadingTrack').classList.toggle('determinate', mode === 'async');
-            document.getElementById('loadingSub').style.display = mode === 'async' ? 'flex' : 'none';
+        function setLoadingMode() {
+            document.getElementById('loadingTrack').classList.add('determinate');
+            document.getElementById('loadingSub').style.display = 'flex';
             document.getElementById('loadingPct').textContent = '';
-            document.getElementById('loadingFill').style.width = '';
+            document.getElementById('loadingFill').style.transform = 'scaleX(0)';
             document.getElementById('loadingMsg').textContent = 'Procesando registros…';
             document.getElementById('loadingCounts').textContent = '';
             pollCounts = '';
@@ -233,7 +287,8 @@
 
         function showResults(data) {
             const resultsArea = document.getElementById('resultsArea');
-            currentExcelB64 = data.excel_b64;
+            currentExcelB64 = data.excel_b64 || null;
+            currentDownloadUrl = data.download_url || null;
 
             const s = data.stats;
             document.getElementById('st-total1').textContent = s.total_file1.toLocaleString();
@@ -242,7 +297,7 @@
             document.getElementById('st-notfound').textContent = s.not_found.toLocaleString();
             document.getElementById('st-rate').textContent = s.match_rate + '%';
             document.getElementById('st-dupes').textContent = s.duplicates_file2.toLocaleString();
-            document.getElementById('st-bar').style.width = '0%';
+            document.getElementById('st-bar').style.transform = 'scaleX(0)';
             setDetailData(data.results);
 
             const dupWarn = document.getElementById('dupWarn');
@@ -260,24 +315,15 @@
             }
 
             resultsArea.style.display = 'flex';
-            setTimeout(() => { document.getElementById('st-bar').style.width = s.match_rate + '%'; }, 80);
+            requestAnimationFrame(() => {
+                document.getElementById('st-bar').style.transform = `scaleX(${s.match_rate / 100})`;
+            });
         }
 
         async function readError(res) {
             let msg = 'Error interno al procesar los archivos';
             try { const e = await res.json(); if (e.detail) msg = e.detail; } catch (_) {}
             return new Error(msg);
-        }
-
-        async function runSync(formData) {
-            const timer = setTimeout(() => compareAbort.abort(), COMPARE_TIMEOUT_MS);
-            try {
-                const response = await fetch('/compare', { method: 'POST', body: formData, signal: compareAbort.signal });
-                if (!response.ok) throw await readError(response);
-                showResults(await response.json());
-            } finally {
-                clearTimeout(timer);
-            }
         }
 
         const STAGE_MSG = { encolado: 'En cola…', comparando: 'Comparando nombres…', generando: 'Generando Excel…' };
@@ -288,7 +334,7 @@
             if (!startRes.ok) throw await readError(startRes);
             const { job_id } = await startRes.json();
             activeJob = job_id;
-            setLoadingMode('async');
+            setLoadingMode();
 
             elapsedTimer = setInterval(() => {
                 if (activeJob !== job_id) { clearInterval(elapsedTimer); elapsedTimer = null; return; }
@@ -296,16 +342,25 @@
                 document.getElementById('loadingCounts').textContent = pollCounts ? `${base} · ${pollCounts}` : base;
             }, 500);
 
+            let pollErrors = 0;
             while (activeJob === job_id) {
                 await new Promise(r => setTimeout(r, 600));
                 if (activeJob !== job_id) return;
                 let p;
                 try {
-                    const pr = await fetch(`/progress/${job_id}`, { signal: compareAbort.signal });
-                    if (!pr.ok) throw new Error('Se perdió el avance del job');
+                    const pr = await fetch(`/progress/${job_id}`, { signal: compareAbort ? compareAbort.signal : undefined });
+                    if (!pr.ok) {
+                        const err = await readError(pr);
+                        err.noRetry = pr.status >= 400 && pr.status < 500;
+                        throw err;
+                    }
                     p = await pr.json();
+                    pollErrors = 0;
                 } catch (err) {
-                    if (err && err.name === 'AbortError' && activeJob !== job_id) return;
+                    if (err && err.name === 'AbortError' && (!compareAbort || activeJob !== job_id)) return;
+                    if (err && err.noRetry) throw err;
+                    pollErrors += 1;
+                    if (pollErrors <= 3) continue;
                     throw err;
                 }
                 if (p.status === 'done') {
@@ -321,7 +376,7 @@
                     return;
                 }
                 const pct = p.total > 0 ? Math.round(p.processed / p.total * 100) : 0;
-                document.getElementById('loadingFill').style.width = pct + '%';
+                document.getElementById('loadingFill').style.transform = `scaleX(${pct / 100})`;
                 document.getElementById('loadingPct').textContent = pct + '%';
                 document.getElementById('loadingMsg').textContent = STAGE_MSG[p.stage] || 'Procesando…';
                 pollCounts = `${Number(p.processed).toLocaleString()} / ${Number(p.total).toLocaleString()}`;
@@ -354,7 +409,7 @@
             compareAbort = new AbortController();
 
             submitBtn.disabled = true;
-            setLoadingMode('sync');
+            setLoadingMode();
             loadingArea.style.display = 'block';
             resultsArea.style.display = 'none';
             emptyState.style.display = 'none';
@@ -368,14 +423,12 @@
             formData.append('sheet2_name', document.getElementById('sheetSelect2').value || '');
             formData.append('threshold', document.getElementById('threshold').value || '85');
 
-            const useAsync = file1.size > ASYNC_MIN_BYTES || file2.size > ASYNC_MIN_BYTES;
-
             try {
-                if (useAsync) await runAsync(formData);
-                else await runSync(formData);
+                await runAsync(formData);
             } catch (err) {
                 if (err && err.name === 'AbortError') {
-                    showToast('La comparación superó el tiempo límite (120 s). Prueba con archivos más pequeños.');
+                    if (!compareAbort) return;
+                    showToast('Comparación interrumpida.', 'info');
                 } else {
                     showToast('Hubo un error: ' + err.message);
                 }
@@ -386,15 +439,35 @@
         });
 
         document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (currentDownloadUrl) {
+                const link = document.createElement('a');
+                link.href = currentDownloadUrl;
+                link.download = 'Resultados_Comparacion.xlsx';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return;
+            }
             if (!currentExcelB64) return;
+            const bin = atob(currentExcelB64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            const blob = new Blob([bytes], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + currentExcelB64;
+            link.href = url;
             link.download = 'Resultados_Comparacion.xlsx';
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
 
         function resetForm() {
             cancelActiveJobSilent();
+            if (compareAbort) { compareAbort.abort(); compareAbort = null; }
             [1, 2].forEach(n => {
                 document.getElementById(`file${n}`).value = '';
                 document.getElementById(`name${n}`).textContent = 'Haz clic o arrastra el archivo';
@@ -412,8 +485,9 @@
             ['st-total1', 'st-total2', 'st-matches', 'st-notfound', 'st-rate', 'st-dupes'].forEach(id => {
                 document.getElementById(id).textContent = '—';
             });
-            document.getElementById('st-bar').style.width = '0%';
+            document.getElementById('st-bar').style.transform = 'scaleX(0)';
             currentExcelB64 = null;
+            currentDownloadUrl = null;
             resetDetail();
             document.getElementById('threshold').value = '85';
             document.getElementById('thresholdVal').textContent = '85';
@@ -467,14 +541,15 @@
             btn.className = 'dd-btn';
             btn.setAttribute('aria-haspopup', 'listbox');
             btn.setAttribute('aria-expanded', 'false');
+            const lbl = document.querySelector(`label[for="${cfg.select}"]`);
+            if (lbl && lbl.id) btn.setAttribute('aria-labelledby', lbl.id);
             const letter = document.createElement('span');
             letter.className = 'dd-letter';
             letter.style.display = 'none';
             const val = document.createElement('span');
             val.className = 'dd-value placeholder';
             val.textContent = cfg.placeholder;
-            const chev = document.createElement('i');
-            chev.className = 'fas fa-chevron-down dd-chevron';
+            const chev = makeIcon('chevron-down', 'dd-chevron');
             btn.append(letter, val, chev);
             const list = document.createElement('div');
             list.className = 'dd-list';
@@ -521,8 +596,9 @@
                 }
             }
 
-            function open() {
+            function open(instant = false) {
                 closeAllDd();
+                wrap.classList.toggle('instant', instant);
                 wrap.classList.add('open');
                 btn.setAttribute('aria-expanded', 'true');
                 const idx = Math.max(0, native.selectedIndex);
@@ -532,7 +608,7 @@
             }
 
             function close() {
-                wrap.classList.remove('open');
+                wrap.classList.remove('open', 'instant');
                 btn.setAttribute('aria-expanded', 'false');
                 hi = -1;
                 clearHi();
@@ -562,8 +638,7 @@
                     const nm = document.createElement('span');
                     nm.className = 'dd-opt-name';
                     nm.textContent = parts.name;
-                    const ck = document.createElement('i');
-                    ck.className = 'fas fa-check dd-check';
+                    const ck = makeIcon('check', 'dd-check');
                     b.append(ls, nm, ck);
                     b.addEventListener('click', () => choose(i));
                     b.addEventListener('mousemove', () => setHi(i));
@@ -573,12 +648,12 @@
             }
 
             btn.addEventListener('click', () => {
-                if (wrap.classList.contains('open')) { close(); } else { open(); }
+                if (wrap.classList.contains('open')) { close(); } else { open(false); }
             });
             btn.addEventListener('keydown', e => {
                 if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) {
                     e.preventDefault();
-                    open();
+                    open(true);
                 }
             });
             list.addEventListener('keydown', e => {
