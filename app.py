@@ -17,6 +17,8 @@ from excel_io import (
     MAX_UPLOAD_BYTES,
     _build_excel_b64,
     _build_excel_bytes,
+    _inspect_headers,
+    _inspect_sheets_and_columns,
     _prepare_inputs,
     _validate_upload,
 )
@@ -224,12 +226,7 @@ async def get_sheets(file: UploadFile = File(...)):
     try:
         contents = await file.read()
         _validate_upload(file, contents)
-        xl = pd.ExcelFile(io.BytesIO(contents))
-        sheets = xl.sheet_names
-        columns = []
-        if sheets:
-            df0 = xl.parse(sheets[0], nrows=0)
-            columns = [str(c) for c in df0.columns]
+        sheets, columns = await run_in_threadpool(_inspect_sheets_and_columns, contents)
         return {"sheets": sheets, "columns": columns}
     except HTTPException:
         raise
@@ -247,16 +244,8 @@ async def get_headers(file: UploadFile = File(...), sheet_name: str = Form("")):
     try:
         contents = await file.read()
         _validate_upload(file, contents)
-        kwargs = {"nrows": 0}
-        if sheet_name:
-            kwargs["sheet_name"] = sheet_name
-        try:
-            df = pd.read_excel(io.BytesIO(contents), **kwargs)
-        except ValueError:
-            raise HTTPException(status_code=400, detail=f"Hoja '{sheet_name}' no existe en el archivo.")
-        if df.columns.empty:
-            raise HTTPException(status_code=400, detail="La hoja no tiene columnas.")
-        return {"columns": [str(c) for c in df.columns]}
+        columns = await run_in_threadpool(_inspect_headers, contents, sheet_name)
+        return {"columns": columns}
     except HTTPException:
         raise
     except Exception as e:
@@ -281,8 +270,8 @@ async def compare_files(
         _validate_upload(file1, contents1)
         _validate_upload(file2, contents2)
 
-        names1, original_names1, names2, original_names2 = _prepare_inputs(
-            contents1, contents2, col1_name, col2_name, sheet1_name, sheet2_name
+        names1, original_names1, names2, original_names2 = await run_in_threadpool(
+            _prepare_inputs, contents1, contents2, col1_name, col2_name, sheet1_name, sheet2_name
         )
 
         empty_file1 = sum(1 for n in names1 if not n)
@@ -336,8 +325,8 @@ async def start_job(
         _validate_upload(file1, contents1)
         _validate_upload(file2, contents2)
 
-        names1, original_names1, names2, original_names2 = _prepare_inputs(
-            contents1, contents2, col1_name, col2_name, sheet1_name, sheet2_name
+        names1, original_names1, names2, original_names2 = await run_in_threadpool(
+            _prepare_inputs, contents1, contents2, col1_name, col2_name, sheet1_name, sheet2_name
         )
 
         empty_file1 = sum(1 for n in names1 if not n)

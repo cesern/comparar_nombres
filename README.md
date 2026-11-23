@@ -8,7 +8,7 @@ diferencias de acentos, mayúsculas, puntuación, orden invertido o typos.
 
 - La **primera fila** de cada hoja se usa como **encabezado** y no se compara.
   Pon un título (ej. `NOMBRE`) en la fila 1 y los datos desde la fila 2.
-- Formatos: `.xlsx`, máximo 10 MB por archivo.
+- Formatos: `.xlsx`, máximo 50 MB por archivo.
 
 ## Uso local (Windows)
 
@@ -54,7 +54,7 @@ segundo apellido y typos.
 
 La interfaz web usa `/start` para mostrar barra de progreso real y botón Cancelar.
 
-Errores de validación → `400` (o `413` si supera 10 MB) con `{"detail": ...}`.
+Errores de validación → `400` (o `413` si supera 50 MB) con `{"detail": ...}`.
 
 ## Tests
 

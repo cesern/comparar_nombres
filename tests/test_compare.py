@@ -106,8 +106,9 @@ def test_validate_vacio():
 
 def test_validate_tamano():
     with pytest.raises(HTTPException) as e:
-        _validate_upload(_upload("datos.xlsx"), b"x" * (10 * 1024 * 1024 + 1))
+        _validate_upload(_upload("datos.xlsx"), b"x" * (50 * 1024 * 1024 + 1))
     assert e.value.status_code == 413
+    _validate_upload(_upload("datos26mb.xlsx"), b"x" * (26 * 1024 * 1024))
 
 
 def test_validate_ok():

@@ -1,13 +1,14 @@
-"""Validación, lectura y exportación de archivos Excel (.xlsx)."""
+"""Validación, lectura (streaming read_only) y exportación de archivos Excel (.xlsx)."""
 import base64
 import io
 
+import openpyxl
 import pandas as pd
 from fastapi import HTTPException, UploadFile
 
 from matching import normalize_name
 
-MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 ALLOWED_EXTENSIONS = (".xlsx",)
 
 _RESULT_COLUMNS = [
@@ -28,38 +29,91 @@ def _validate_upload(file: UploadFile, contents: bytes) -> None:
     if len(contents) == 0:
         raise HTTPException(status_code=400, detail=f"Archivo '{file.filename}' está vacío.")
     if len(contents) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail=f"Archivo '{file.filename}' supera 10 MB.")
+        raise HTTPException(status_code=413, detail=f"Archivo '{file.filename}' supera 50 MB.")
+
+
+def _format_headers(raw_headers) -> list[str]:
+    return [
+        f"Unnamed: {idx}" if val is None or str(val).strip() == "" else str(val)
+        for idx, val in enumerate(raw_headers)
+    ]
+
+
+def _inspect_sheets_and_columns(contents: bytes) -> tuple[list[str], list[str]]:
+    """Lee nombres de hojas y encabezados de la primera hoja en modo streaming."""
+    wb = openpyxl.load_workbook(io.BytesIO(contents), read_only=True, data_only=True)
+    try:
+        sheets = list(wb.sheetnames)
+        columns: list[str] = []
+        if sheets:
+            ws = wb[sheets[0]]
+            first_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), None)
+            if first_row:
+                columns = _format_headers(first_row)
+        return sheets, columns
+    finally:
+        wb.close()
+
+
+def _inspect_headers(contents: bytes, sheet_name: str = "") -> list[str]:
+    """Lee encabezados de una hoja específica en modo streaming."""
+    wb = openpyxl.load_workbook(io.BytesIO(contents), read_only=True, data_only=True)
+    try:
+        target = sheet_name or (wb.sheetnames[0] if wb.sheetnames else "")
+        if not target or target not in wb.sheetnames:
+            raise HTTPException(status_code=400, detail=f"Hoja '{sheet_name}' no existe en el archivo.")
+        ws = wb[target]
+        first_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True), None)
+        if not first_row:
+            raise HTTPException(status_code=400, detail="La hoja no tiene columnas.")
+        return _format_headers(first_row)
+    finally:
+        wb.close()
+
+
+def _read_single_column(contents: bytes, sheet_name: str, col_name: str, file_label: str):
+    """Lee únicamente la columna elegida usando openpyxl read_only (bajo uso de RAM)."""
+    wb = openpyxl.load_workbook(io.BytesIO(contents), read_only=True, data_only=True)
+    try:
+        target = sheet_name or (wb.sheetnames[0] if wb.sheetnames else "")
+        if not target or target not in wb.sheetnames:
+            raise HTTPException(status_code=400, detail=f"Hoja no encontrada: '{sheet_name}'.")
+        ws = wb[target]
+        rows_iter = ws.iter_rows(values_only=True)
+        first_row = next(rows_iter, None)
+        if not first_row:
+            raise HTTPException(status_code=400, detail="Un archivo no tiene columnas.")
+
+        headers = _format_headers(first_row)
+        if col_name:
+            if col_name not in headers:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Columna '{col_name}' no existe en {file_label}.",
+                )
+            col_idx = headers.index(col_name)
+        else:
+            col_idx = 0
+
+        names = []
+        original_names = []
+        for row in rows_iter:
+            val = row[col_idx] if col_idx < len(row) else None
+            names.append(normalize_name(val))
+            original_names.append(val)
+        return names, original_names
+    finally:
+        wb.close()
 
 
 def _prepare_inputs(contents1, contents2, col1_name, col2_name, sheet1_name, sheet2_name):
     """Lee y valida los Excels ya cargados. Devuelve nombres normalizados + originales."""
-    read_kw1 = {"sheet_name": sheet1_name} if sheet1_name else {}
-    read_kw2 = {"sheet_name": sheet2_name} if sheet2_name else {}
-    try:
-        df1 = pd.read_excel(io.BytesIO(contents1), **read_kw1)
-        df2 = pd.read_excel(io.BytesIO(contents2), **read_kw2)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Hoja no encontrada: {e}")
+    names1, original_names1 = _read_single_column(contents1, sheet1_name, col1_name, "Archivo 1")
+    names2, original_names2 = _read_single_column(contents2, sheet2_name, col2_name, "Archivo 2")
 
-    if df1.columns.empty or df2.columns.empty:
-        raise HTTPException(status_code=400, detail="Un archivo no tiene columnas.")
-    if df1.empty and df2.empty:
+    if not names1 and not names2:
         raise HTTPException(status_code=400, detail="Ambos archivos están vacíos.")
 
-    df1.columns = [str(c) for c in df1.columns]
-    df2.columns = [str(c) for c in df2.columns]
-
-    if col1_name and col1_name not in df1.columns:
-        raise HTTPException(status_code=400, detail=f"Columna '{col1_name}' no existe en Archivo 1.")
-    if col2_name and col2_name not in df2.columns:
-        raise HTTPException(status_code=400, detail=f"Columna '{col2_name}' no existe en Archivo 2.")
-    col1 = col1_name if col1_name else df1.columns[0]
-    col2 = col2_name if col2_name else df2.columns[0]
-
-    names1 = df1[col1].apply(normalize_name).tolist()
-    original_names1 = df1[col1].tolist()
-    names2 = df2[col2].apply(normalize_name).tolist()
-    original_names2 = df2[col2].tolist()
     return names1, original_names1, names2, original_names2
 
 
